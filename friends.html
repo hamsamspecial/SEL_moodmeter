@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>무드미터로 친구의 감정 찾기</title>
+<style>
+  @font-face {
+    font-family: 'Okticon';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2408@1.0/Ownglyph_okticon-Lt.woff2') format('woff2');
+    font-weight: 300;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'Okticon';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2408@1.0/Ownglyph_okticon-Rg.woff2') format('woff2');
+    font-weight: 400;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'Okticon';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2408@1.0/Ownglyph_okticon-Bd.woff2') format('woff2');
+    font-weight: 700;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'GangwonEducationSaeum';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2201-2@1.0/GangwonEduSaeeum_OTFMediumA.woff') format('woff');
+    font-weight: normal;
+    font-display: swap;
+  }
+  :root{
+    --bg1:#fffaf6;
+    --bg2:#fff1f6;
+    --panel:#ffffff;
+    --text:#3a2f35;
+    --sub:#7a6f75;
+    --line:#efdfe6;
+    --accent:#9b7cf3;
+    --accent2:#ff9ec4;
+    --shadow:0 12px 30px rgba(120,90,110,0.10);
+
+    --red:#ef6b6b;
+    --yellow:#f5cf4f;
+    --green:#65c27b;
+    --blue:#69b0ee;
+    --centerGray:#dddde4;
+
+    --soft-red:#fff0f0;
+    --soft-yellow:#fff8df;
+    --soft-green:#eefbef;
+    --soft-blue:#eef7ff;
+    --soft-purple:#f4efff;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family: 'GangwonEducationSaeum', sans-serif;
+    font-size:clamp(1.4rem,2.7vw,1.6rem);
+    letter-spacing:-0.01em;
+    color:var(--text);
+    background:
+      radial-gradient(circle at 10% 10%, #ffffff 0 10%, transparent 10.5%),
+      radial-gradient(circle at 90% 12%, #fff7c7 0 8%, transparent 8.5%),
+      radial-gradient(circle at 18% 88%, #ffdbe8 0 9%, transparent 9.5%),
+      radial-gradient(circle at 83% 80%, #dff4ff 0 8%, transparent 8.5%),
+      linear-gradient(180deg,var(--bg1),var(--bg2));
+    background-size:120px 120px, 180px 180px, 160px 160px, 170px 170px, auto;
+    line-height:1.5;
+    line-height:1.5;
+  }
+
+  h1, h2, h3, .title-badge, .hint, .small, strong, .label, button, input, .emotion-main, .emotion-title, summary, .toggle-sub, .big, .saved-name, .chip {
+    font-family: 'Okticon', sans-serif;
+  }
+
+  .wrap{
+    max-width:1260px;
+    margin:0 auto;
+    padding:18px;
+  }
+
+  .title{
+    text-align:center;
+    margin-bottom:16px;
+    position:relative;
+  }
+  .title-badge{
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    padding:8px 16px;
+    border-radius:999px;
+    background:#fff;
+    border:2px solid var(--line);
+    box-shadow:var(--shadow);
+    font-size:clamp(1rem,2vw,1.15rem);
+    font-weight:900;
+    color:#8a69cb;
+    margin-bottom:10px;
+  }
+  .title h1{
+    margin:0;
+    font-size:clamp(2rem,4.5vw,3.2rem);
+    letter-spacing:-0.03em;
+  }
+  .title p{
+    margin:8px auto 0;
+    font-size:clamp(1.5rem,3.3vw,2.0rem);
+    color:var(--sub);
+    max-width:900px;
+  }
+
+  .top-grid{
+    display:grid;
+    grid-template-columns:1.15fr 0.85fr;
+    gap:18px;
+    align-items:start;
+  }
+  @media (max-width:980px){
+    .top-grid{grid-template-columns:1fr;}
+  }
+
+  .card{
+    background:rgba(255,255,255,0.95);
+    border:2px solid var(--line);
+    border-radius:28px;
+    box-shadow:var(--shadow);
+    padding:18px;
+  }
+
+  .meter-wrap{
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+  }
+
+  .meter-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  .meter-head h2,.side h2{
+    margin:0;
+    font-size:clamp(1.4rem,2.8vw,2rem);
+  }
+  .hint{
+    font-size:clamp(1.4rem,2.7vw,1.6rem);
+    color:var(--sub);
+    font-weight:800;
+    background:#fff;
+    border:2px dashed #e6d8ff;
+    padding:8px 12px;
+    border-radius:999px;
+  }
+
+  .friend-question{
+    display:grid;
+    grid-template-columns:1fr auto;
+    gap:10px;
+    align-items:center;
+    background:linear-gradient(180deg,#fffafd,#fff6fb);
+    border:2px solid var(--line);
+    border-radius:22px;
+    padding:14px;
+  }
+  @media (max-width:700px){
+    .friend-question{grid-template-columns:1fr;}
+  }
+  .friend-question label{
+    font-size:clamp(1.08rem,2vw,1.25rem);
+    font-weight:900;
+  }
+  .friend-question input{
+    width:100%;
+    font-size:clamp(1rem,2vw,1.15rem);
+    padding:14px 16px;
+    border-radius:18px;
+    border:2px solid var(--line);
+    outline:none;
+    color:var(--text);
+    background:#fff;
+  }
+  .friend-question input:focus{
+    border-color:#cdbbff;
+    box-shadow:0 0 0 4px rgba(155,124,243,0.14);
+  }
+
+  .meter-box{
+    position:relative;
+    width:100%;
+    aspect-ratio:1.08/1;
+    max-height:62vh;
+    border-radius:24px;
+    overflow:hidden;
+    border:2px solid var(--line);
+    background:#fff;
+    touch-action:none;
+    user-select:none;
+  }
+
+  svg{display:block;width:100%;height:100%;}
+  .axis-label{
+    font-size:4px;
+    font-weight:900;
+    fill:#5a5050;
+  }
+  .small-label{
+    font-size:3px;
+    font-weight:800;
+    fill:#6e6565;
+  }
+  .dot-shadow{
+    filter: drop-shadow(0 6px 10px rgba(0,0,0,0.18));
+  }
+
+  .controls{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+  }
+  @media (max-width:700px){
+    .controls{grid-template-columns:1fr;}
+  }
+
+  .control{
+    background:linear-gradient(180deg,#fffefd,#fff7fb);
+    border:2px solid var(--line);
+    border-radius:22px;
+    padding:14px;
+  }
+  .control label{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+    font-weight:900;
+    font-size:clamp(1.08rem,2vw,1.3rem);
+    margin-bottom:10px;
+  }
+  .value-badge{
+    min-width:78px;
+    text-align:center;
+    background:#fff;
+    border:2px solid var(--line);
+    border-radius:999px;
+    padding:5px 10px;
+    color:#7b60c9;
+    box-shadow:0 4px 10px rgba(123,96,201,0.08);
+  }
+  input[type="range"]{
+    width:100%;
+    accent-color:var(--accent);
+    height:36px;
+  }
+
+  .btns{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  button{
+    border:none;
+    border-radius:18px;
+    padding:14px 18px;
+    font-size:clamp(1rem,2vw,1.15rem);
+    font-weight:900;
+    cursor:pointer;
+    box-shadow:0 6px 14px rgba(80,60,60,0.08);
+    transition:transform .05s ease;
+  }
+  button:active{transform:scale(0.98);}
+  .reset{
+    background:#ffe7e7;
+    color:#965555;
+  }
+  .center{
+    background:#eee8ff;
+    color:#604ab0;
+  }
+  .save{
+    background:#e7f9ec;
+    color:#2e7f49;
+  }
+
+  .side{
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+  }
+
+  .face-card{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:14px;
+    align-items:center;
+    border-radius:28px;
+    padding:16px;
+    border:2px solid var(--line);
+    background:linear-gradient(180deg,#ffffff,#fffafb);
+  }
+  .face-wrap{
+    width:100%;
+    max-width:300px;
+    margin:0 auto;
+    aspect-ratio:1/1;
+    background:
+      radial-gradient(circle at 30% 20%, rgba(255,255,255,0.65) 0 12%, transparent 13%),
+      linear-gradient(180deg,#fff,#fff8fb);
+    border-radius:26px;
+    padding:10px;
+    border:2px dashed #efdfe8;
+  }
+  .face-title{
+    text-align:center;
+    font-size:clamp(1.3rem,2.5vw,1.8rem);
+    font-weight:900;
+  }
+  .face-text{
+    font-size:clamp(1.05rem,2vw,1.2rem);
+    color:#554c4f;
+    font-weight:800;
+    text-align:center;
+    background:#fff;
+    border:2px dashed #eddff7;
+    border-radius:18px;
+    padding:12px;
+  }
+
+  .mini-status{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+  }
+  @media (max-width:520px){
+    .mini-status{grid-template-columns:1fr;}
+  }
+  .pill{
+    padding:14px 16px;
+    border-radius:20px;
+    border:2px solid var(--line);
+    background:#fff;
+  }
+  .pill .label{
+    color:var(--sub);
+    font-size:clamp(0.95rem,1.8vw,1.05rem);
+    font-weight:800;
+  }
+  .pill .big{
+    margin-top:6px;
+    font-size:clamp(1.2rem,3vw,1.8rem);
+    font-weight:900;
+  }
+
+  details.toggle-card{
+    margin-top:18px;
+    background:rgba(255,255,255,0.96);
+    border:2px solid var(--line);
+    border-radius:28px;
+    box-shadow:var(--shadow);
+    overflow:hidden;
+  }
+  details.toggle-card summary{
+    list-style:none;
+    cursor:pointer;
+    padding:18px;
+    font-size:clamp(1.15rem,2.4vw,1.5rem);
+    font-weight:900;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+  }
+  details.toggle-card summary::-webkit-details-marker{display:none;}
+  .toggle-left{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+  }
+  .toggle-sub{
+    color:var(--sub);
+    font-size:clamp(0.95rem,1.8vw,1.05rem);
+    font-weight:700;
+  }
+  .arrow{
+    width:48px;
+    height:48px;
+    border-radius:999px;
+    display:grid;
+    place-items:center;
+    background:#f3edff;
+    color:#5a46a0;
+    font-size:1.4rem;
+    flex:0 0 auto;
+    transition:transform .2s ease;
+  }
+  details[open] .arrow{transform:rotate(180deg);}
+  .toggle-content{
+    padding:0 18px 18px 18px;
+    display:grid;
+    grid-template-columns:1fr 1.1fr;
+    gap:16px;
+  }
+  @media (max-width:900px){
+    .toggle-content{grid-template-columns:1fr;}
+  }
+
+  .emotion-box{
+    border-radius:24px;
+    padding:16px;
+    border:2px solid var(--line);
+    background:#fff;
+  }
+  .emotion-title{
+    font-size:clamp(1.1rem,2vw,1.3rem);
+    font-weight:900;
+    color:var(--sub);
+    margin-bottom:8px;
+  }
+  .emotion-main{
+    font-size:clamp(1.8rem,4vw,2.6rem);
+    font-weight:900;
+    margin-bottom:10px;
+  }
+  .chips{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+  }
+  .chip{
+    padding:10px 14px;
+    border-radius:999px;
+    border:2px solid rgba(0,0,0,0.08);
+    background:rgba(255,255,255,0.9);
+    font-size:clamp(1rem,2vw,1.12rem);
+    font-weight:900;
+  }
+
+  .concept{
+    border-radius:24px;
+    padding:16px;
+    border:2px dashed #ddcbff;
+    background:#fcf9ff;
+  }
+  .concept h3{
+    margin:0 0 8px 0;
+    font-size:clamp(1.15rem,2.2vw,1.45rem);
+  }
+  .concept ul{
+    margin:0;
+    padding-left:1.2em;
+    font-size:clamp(1rem,2vw,1.12rem);
+  }
+
+  .saved-card{
+    margin-top:18px;
+    background:rgba(255,255,255,0.96);
+    border:2px solid var(--line);
+    border-radius:28px;
+    box-shadow:var(--shadow);
+    padding:18px;
+  }
+  .saved-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-bottom:14px;
+  }
+  .saved-head h2{
+    margin:0;
+    font-size:clamp(1.25rem,2.5vw,1.8rem);
+  }
+  .saved-list{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+    gap:14px;
+  }
+  .saved-item{
+    border:2px solid var(--line);
+    border-radius:22px;
+    padding:14px;
+    background:#fff;
+  }
+  .saved-top{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-bottom:10px;
+  }
+  .saved-face{
+    width:66px;
+    height:66px;
+    flex:0 0 66px;
+  }
+  .saved-name{
+    font-size:clamp(1.1rem,2vw,1.25rem);
+    font-weight:900;
+  }
+  .saved-main{
+    font-size:clamp(1.05rem,2vw,1.18rem);
+    font-weight:900;
+    margin-top:2px;
+  }
+  .saved-sub{
+    font-size:clamp(0.95rem,1.8vw,1.02rem);
+    color:var(--sub);
+    font-weight:800;
+  }
+  .empty{
+    border:2px dashed var(--line);
+    border-radius:22px;
+    padding:22px;
+    text-align:center;
+    color:var(--sub);
+    font-size:clamp(1rem,2vw,1.12rem);
+    font-weight:800;
+    background:#fff;
+  }
+
+  .footer-note{
+    text-align:center;
+    color:var(--sub);
+    margin-top:14px;
+    font-size:clamp(0.95rem,1.8vw,1.05rem);
+    font-weight:800;
+  }
+
+  .sparkle{
+    display:inline-block;
+    margin-right:6px;
+  }
+
+          .inner-emoji {
+            position: absolute;
+            color: #ffffff;
+            font-family: 'Okticon', sans-serif;
+            font-size: clamp(1.1rem, 2.2vw, 1.35rem);
+            font-weight: 700;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.35);
+            pointer-events: none;
+            z-index: 10;
+          }
+        </style>
+</head>
+<body>
+  <a href="index.html" style="position: fixed; top: 16px; left: 16px; text-decoration: none; font-size: 2rem; background: rgba(255,255,255,0.9); border-radius: 50%; width: 54px; height: 54px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; border: 2px solid #e2d9f3; transition: transform 0.2s;" title="첫 화면으로" onmouseover="this.style.transform=&apos;scale(1.1)&apos;" onmouseout="this.style.transform=&apos;scale(1)&apos;">🏠</a>
+  <div class="wrap">
+    <div class="title">
+      <div class="title-badge">🌈 감정 탐정 놀이 · 무드미터</div>
+      <h1>무드미터로 친구의 감정 찾기</h1>
+      <p>😊 친구의 감정을 물어보고, 무드미터에서 위치를 찾고, 표정과 감정 말을 저장해 보세요.</p>
+    </div>
+
+    <div class="top-grid">
+      <section class="card meter-wrap">
+        <div class="meter-head">
+          <h2>🧭 친구 마음의 위치 찾기</h2>
+          <div class="hint">👆 눌러서 옮기기 · 드래그하기 · 슬라이더 조절하기</div>
+        </div>
+
+        <div class="friend-question">
+          <label for="friendName">💬 감정을 살펴볼 친구 이름 또는 별명</label>
+          <input id="friendName" type="text" maxlength="12" placeholder="예: 친구, 민수, 옆 친구" />
+        </div>
+
+        
+        <style>
+          .axis-label {
+            font-family: 'Okticon', sans-serif;
+            font-size: 1.5rem;
+            color: var(--sub);
+            text-align: center;
+          }
+          @keyframes prism {
+            0% { filter: hue-rotate(0deg) drop-shadow(0 0 10px rgba(255,100,100,0.8)); }
+            33% { filter: hue-rotate(120deg) drop-shadow(0 0 10px rgba(100,255,100,0.8)); }
+            66% { filter: hue-rotate(240deg) drop-shadow(0 0 10px rgba(100,100,255,0.8)); }
+            100% { filter: hue-rotate(360deg) drop-shadow(0 0 10px rgba(255,100,100,0.8)); }
+          }
+          .heart-marker {
+            animation: prism 3s infinite linear;
+            transform-origin: center;
+            transition: transform 0.1s;
+          }
+        </style>
+        <div class="axis-label" style="margin-bottom: 8px;">↑ 힘 많음</div>
+        <div style="display: flex; align-items: stretch; position: relative;">
+          <div class="axis-label" style="writing-mode: vertical-rl; margin-right: 8px;">기분 나쁨 ←</div>
+          <div class="meter-box" style="flex:1; margin:0;" id="meterBox" aria-label="무드미터">
+            <div class="inner-emoji" style="top: 12px; left: 16px;">😣 빨강</div>
+            <div class="inner-emoji" style="top: 12px; right: 16px;">😄 노랑</div>
+            <div class="inner-emoji" style="bottom: 12px; left: 16px;">😢 파랑</div>
+            <div class="inner-emoji" style="bottom: 12px; right: 16px;">😌 초록</div>
+
+          <svg id="meterSvg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" style="width: 100%; height: 100%; border-radius: 22px; overflow: hidden; display: block; box-shadow: inset 0 2px 8px rgba(100, 80, 180, 0.07); border: 2px solid var(--line); cursor:crosshair;">
+<defs>
+                <radialGradient id="gTL" cx="0%" cy="0%" r="115%" gradientUnits="objectBoundingBox"><stop offset="0%" stop-color="var(--red)" /><stop offset="55%" stop-color="#f28b8b" /><stop offset="100%" stop-color="#adb5c4" /></radialGradient>
+                <radialGradient id="gTR" cx="100%" cy="0%" r="115%" gradientUnits="objectBoundingBox"><stop offset="0%" stop-color="var(--yellow)" /><stop offset="55%" stop-color="#f7dd79" /><stop offset="100%" stop-color="#adb5c4" /></radialGradient>
+                <radialGradient id="gBL" cx="0%" cy="100%" r="115%" gradientUnits="objectBoundingBox"><stop offset="0%" stop-color="var(--blue)" /><stop offset="55%" stop-color="#8bc5f7" /><stop offset="100%" stop-color="#adb5c4" /></radialGradient>
+                <radialGradient id="gBR" cx="100%" cy="100%" r="115%" gradientUnits="objectBoundingBox"><stop offset="0%" stop-color="var(--green)" /><stop offset="55%" stop-color="#8cdb9d" /><stop offset="100%" stop-color="#adb5c4" /></radialGradient>
+              </defs>
+  <rect x="0" y="0" width="50" height="50" fill="url(#gTL)" />
+  <rect x="50" y="0" width="50" height="50" fill="url(#gTR)" />
+  <rect x="0" y="50" width="50" height="50" fill="url(#gBL)" />
+  <rect x="50" y="50" width="50" height="50" fill="url(#gBR)" />
+  <line x1="50" y1="0" x2="50" y2="100" stroke="rgba(255,255,255,0.75)" stroke-width="0.9" />
+              <line x1="0" y1="50" x2="100" y2="50" stroke="rgba(255,255,255,0.75)" stroke-width="0.9" />
+              <g id="marker" class="heart-marker" style="pointer-events:none;">
+                <path d="M50 56 C 50 56 42 48 42 44 A 4 4 0 0 1 50 42 A 4 4 0 0 1 58 44 C 58 48 50 56 50 56 Z" fill="#ffffff" stroke="#ff4d4d" stroke-width="1" />
+              </g>
+</svg>
+        </div>
+          <div class="axis-label" style="writing-mode: vertical-rl; margin-left: 8px;">→ 기분 좋음</div>
+        </div>
+        <div class="axis-label" style="margin-top: 8px;">↓ 힘 적음</div>
+
+        <div class="controls">
+          <div class="control">
+            <label for="pleasant">
+              <span>🙂 친구의 기분이 좋고 나쁨</span>
+              <span class="value-badge" id="pleasantValue">50점</span>
+            </label>
+            <input type="range" id="pleasant" min="0" max="100" value="50" />
+          </div>
+
+          <div class="control">
+            <label for="energy">
+              <span>⚡ 친구의 힘이 있는 정도</span>
+              <span class="value-badge" id="energyValue">50점</span>
+            </label>
+            <input type="range" id="energy" min="0" max="100" value="50" />
+          </div>
+        </div>
+
+        <div class="btns">
+          <button class="save" id="saveBtn">💾 친구 감정 저장</button>
+          <button class="center" id="centerBtn">🎯 가운데로 놓기</button>
+          <button class="reset" id="resetBtn">🔄 다시 시작</button>
+        </div>
+      </section>
+
+      <section class="side">
+        <div class="face-card card">
+          <div class="face-title" id="faceTitle">😊 친구 표정이 실시간으로 바뀌어요</div>
+          <div class="face-wrap">
+            <svg id="faceSvg" viewBox="0 0 200 200" width="100%" height="100%" aria-hidden="true">
+            <circle id="faceBg" cx="100" cy="100" r="90" fill="#dddde4" stroke="#ffffff" stroke-width="6" />
+            <circle cx="60" cy="115" r="14" fill="#ffb3c6" opacity="0.6"/>
+            <circle cx="140" cy="115" r="14" fill="#ffb3c6" opacity="0.6"/>
+            <path id="leftBrow" d="M50 65 Q65 60 80 65" fill="none" stroke="#3a2f35" stroke-width="6" stroke-linecap="round"/>
+            <path id="rightBrow" d="M120 65 Q135 60 150 65" fill="none" stroke="#3a2f35" stroke-width="6" stroke-linecap="round"/>
+            <ellipse id="leftEye" cx="65" cy="88" rx="8" ry="12" fill="#3a2f35"/>
+            <ellipse id="rightEye" cx="135" cy="88" rx="8" ry="12" fill="#3a2f35"/>
+            <path id="leftEyeHappy" d="M55 88 Q65 72 75 88" fill="none" stroke="#3a2f35" stroke-width="7" stroke-linecap="round" opacity="0"/>
+            <path id="rightEyeHappy" d="M125 88 Q135 72 145 88" fill="none" stroke="#3a2f35" stroke-width="7" stroke-linecap="round" opacity="0"/>
+            <path id="leftEyeClosed" d="M55 88 Q65 98 75 88" fill="none" stroke="#3a2f35" stroke-width="7" stroke-linecap="round" opacity="0"/>
+            <path id="rightEyeClosed" d="M125 88 Q135 98 145 88" fill="none" stroke="#3a2f35" stroke-width="7" stroke-linecap="round" opacity="0"/>
+            <path id="leftEyeAngry" d="M55 78 L75 92" fill="none" stroke="#3a2f35" stroke-width="7" stroke-linecap="round" opacity="0"/>
+            <path id="rightEyeAngry" d="M125 92 L145 78" fill="none" stroke="#3a2f35" stroke-width="7" stroke-linecap="round" opacity="0"/>
+            <path id="mouth" d="M70 135 Q100 135 130 135" fill="none" stroke="#3a2f35" stroke-width="7" stroke-linecap="round"/>
+            <g id="tears" opacity="0">
+              <path d="M65 105 Q60 120 65 130 Q70 120 65 105Z" fill="#8ecfff" stroke="#60b6f0" stroke-width="2"/>
+              <path d="M135 105 Q130 120 135 130 Q140 120 135 105Z" fill="#8ecfff" stroke="#60b6f0" stroke-width="2"/>
+            </g>
+          </svg>
+          </div>
+
+          <div class="mini-status">
+            <div class="pill">
+              <div class="label">📍 친구의 무드미터 위치</div>
+              <div class="big" id="positionText">가운데</div>
+            </div>
+            <div class="pill">
+              <div class="label">💖 친구의 감정</div>
+              <div class="big" id="mainEmotionMini">보통이에요</div>
+            </div>
+          </div>
+
+          <div class="face-text" id="faceText">가운데에서는 색이 가장 연하고 표정도 중간에 가까워요.</div>
+        </div>
+      </section>
+    </div>
+
+    <details class="toggle-card">
+      <summary>
+        <div class="toggle-left">
+          <span>📝 친구 감정을 나타내는 말 보기</span>
+          <span class="toggle-sub">원할 때 펼쳐서 자세히 볼 수 있어요.</span>
+        </div>
+        <div class="arrow">⌄</div>
+      </summary>
+
+      <div class="toggle-content">
+        <div class="emotion-box">
+          <div class="emotion-title">🌟 친구의 대표 감정</div>
+          <div class="emotion-main" id="mainEmotion">보통이에요</div>
+
+          <div class="emotion-title">🏷️ 친구 감정을 나타내는 말</div>
+          <div class="chips" id="emotionChips"></div>
+        </div>
+
+        <div class="concept">
+          <h3>🎓 확인할 개념</h3>
+          <ul>
+            <li>친구의 감정은 <strong>기분이 좋고 나쁨</strong>과 <strong>힘이 많고 적음</strong>으로 찾을 수 있어요.</li>
+            <li>친구의 감정은 무드미터의 <strong>색깔 위치</strong>로 나타낼 수 있어요.</li>
+            <li>빨강, 노랑, 초록, 파랑은 서로 다른 감정 느낌을 보여 줘요.</li>
+            <li>같은 색 안에서도 점의 위치가 달라지면 감정 말이 조금씩 달라져요.</li>
+          </ul>
+        </div>
+      </div>
+    </details>
+
+    <section class="saved-card">
+      <div class="saved-head">
+        <h2>📚 저장한 친구 감정</h2>
+        <div class="hint">최대 6개까지 저장돼요.</div>
+      </div>
+      <div id="savedList" class="saved-list">
+        <div class="empty" id="emptyBox">아직 저장한 친구 감정이 없어요.<br>친구의 감정을 찾은 뒤 <strong>친구 감정 저장</strong> 버튼을 눌러 보세요. 🫶</div>
+      </div>
+    </section>
+
+    <div class="footer-note">
+      💬 친구에게 “지금 어떤 기분이야?”, “힘이 많이 있어, 조금 있어?” 하고 물어보며 함께 찾아보세요.
+    </div>
+  </div>
+
+<script>
+(function(){
+  const pleasantInput = document.getElementById('pleasant');
+  const energyInput = document.getElementById('energy');
+  const pleasantValue = document.getElementById('pleasantValue');
+  const energyValue = document.getElementById('energyValue');
+
+  
+  const marker = document.getElementById('marker');
+  const meterBox = document.getElementById('meterBox');
+  const meterSvg = document.getElementById('meterSvg');
+
+  const mainEmotion = document.getElementById('mainEmotion');
+  const mainEmotionMini = document.getElementById('mainEmotionMini');
+  const emotionChips = document.getElementById('emotionChips');
+  const positionText = document.getElementById('positionText');
+  const faceText = document.getElementById('faceText');
+  const faceTitle = document.getElementById('faceTitle');
+
+  const faceBg = document.getElementById('faceBg');
+  const leftBrow = document.getElementById('leftBrow');
+  const rightBrow = document.getElementById('rightBrow');
+  const leftEye = document.getElementById('leftEye');
+  const rightEye = document.getElementById('rightEye');
+  const leftEyeHappy = document.getElementById('leftEyeHappy');
+  const rightEyeHappy = document.getElementById('rightEyeHappy');
+  const leftEyeClosed = document.getElementById('leftEyeClosed');
+  const rightEyeClosed = document.getElementById('rightEyeClosed');
+  const leftEyeAngry = document.getElementById('leftEyeAngry');
+  const rightEyeAngry = document.getElementById('rightEyeAngry');
+  const mouth = document.getElementById('mouth');
+  const tears = document.getElementById('tears');
+
+  const friendNameInput = document.getElementById('friendName');
+  const saveBtn = document.getElementById('saveBtn');
+  const centerBtn = document.getElementById('centerBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const savedList = document.getElementById('savedList');
+  const emptyBox = document.getElementById('emptyBox');
+
+  const MAX_SAVED = 6;
+  let savedEmotions = [];
+
+  // ---------- 감정 단어 데이터 (사분면 x 세부 위치) ----------
+  // 사분면: TL(빨강,기분나쁨+힘많음), TR(노랑,기분좋음+힘많음), BL(파랑,기분나쁨+힘적음), BR(초록,기분좋음+힘적음)
+  const wordBank = {
+    red:    ['화가 나요', '짜증나요', '답답해요', '불안해요'],
+    yellow: ['신나요', '즐거워요', '들떠요', '기뻐요'],
+    blue:   ['슬퍼요', '외로워요', '지쳐요', '속상해요'],
+    green:  ['편안해요', '차분해요', '만족해요', '평온해요']
+  };
+
+  function quadrantOf(p, e){
+    // p: 0~100 기분(가로), e: 0~100 힘(세로, 높을수록 위)
+    if(p < 50 && e >= 50) return 'red';
+    if(p >= 50 && e >= 50) return 'yellow';
+    if(p < 50 && e < 50) return 'blue';
+    return 'green';
+  }
+
+  function quadrantLabel(q){
+    switch(q){
+      case 'red': return '기분 나쁨 · 힘 많음';
+      case 'yellow': return '기분 좋음 · 힘 많음';
+      case 'blue': return '기분 나쁨 · 힘 적음';
+      case 'green': return '기분 좋음 · 힘 적음';
+    }
+  }
+
+  function mainWordOf(q, p, e){
+    // 중심에서 얼마나 멀리 떨어졌는지에 따라 강도 있는 단어 선택
+    const dist = Math.hypot(p-50, e-50);
+    const words = wordBank[q];
+    if(dist < 12) return '보통이에요';
+    // 거리 기준으로 강/약 단어 선택 (앞쪽=약함, 뒤쪽=강함 느낌으로 배치)
+    return dist > 38 ? words[0] : words[Math.min(2, Math.floor(dist/15))];
+  }
+
+  function quadrantColorVar(q){
+    return {red:'var(--red)', yellow:'var(--yellow)', blue:'var(--blue)', green:'var(--green)'}[q];
+  }
+
+  // ---------- 무드미터 마커 위치 갱신 ----------
+  function setMarkerPosition(p, e){
+    const x = p;
+    const y = 100 - e;
+    const marker = document.getElementById('marker');
+    marker.setAttribute('transform', `translate(${x - 50}, ${y - 50})`);
+}
+
+  // ---------- 표정 갱신 ----------
+  function resetFaceParts(){
+    [leftEyeHappy, rightEyeHappy, leftEyeClosed, rightEyeClosed, leftEyeAngry, rightEyeAngry].forEach(el=>{
+      el.setAttribute('opacity','0');
+    });
+    leftEye.setAttribute('opacity','1');
+    rightEye.setAttribute('opacity','1');
+    tears.setAttribute('opacity','0');
+  }
+
+  function updateFace(q, p, e){
+    resetFaceParts();
+    const dist = Math.hypot(p-50, e-50);
+    const strong = dist > 30;
+
+    const bgColorMap = {
+      red:'#ffd3d3', yellow:'#fff2c2', blue:'#cfe7ff', green:'#cdefd6'
+    };
+    faceBg.setAttribute('fill', bgColorMap[q]);
+
+    if(q === 'yellow'){
+      // 신나고 즐거움: 웃는 눈 + 활짝 웃는 입 + 올라간 눈썹
+      leftEye.setAttribute('opacity','0');
+      rightEye.setAttribute('opacity','0');
+      leftEyeHappy.setAttribute('opacity','1');
+      rightEyeHappy.setAttribute('opacity','1');
+      leftBrow.setAttribute('d','M55 55 Q70 48 85 55');
+      rightBrow.setAttribute('d','M115 55 Q130 48 145 55');
+      mouth.setAttribute('d', strong ? 'M60 122 Q100 150 140 122' : 'M65 125 Q100 142 135 125');
+    } else if(q === 'red'){
+      // 화나고 답답함: 화난 눈썹 + 화난 눈 + 찡그린 입
+      leftEyeAngry.setAttribute('opacity', strong ? '1':'0');
+      rightEyeAngry.setAttribute('opacity', strong ? '1':'0');
+      leftEye.setAttribute('opacity', strong ? '0':'1');
+      rightEye.setAttribute('opacity', strong ? '0':'1');
+      leftBrow.setAttribute('d','M55 66 Q70 58 88 66');
+      rightBrow.setAttribute('d','M112 66 Q130 58 145 66');
+      mouth.setAttribute('d', strong ? 'M62 138 Q100 118 138 138' : 'M68 132 Q100 122 132 132');
+    } else if(q === 'blue'){
+      // 슬프고 외로움: 처진 눈썹 + 눈물 + 처진 입
+      leftBrow.setAttribute('d','M55 62 Q70 66 85 60');
+      rightBrow.setAttribute('d','M115 60 Q130 66 145 62');
+      mouth.setAttribute('d', strong ? 'M65 138 Q100 122 135 138' : 'M68 132 Q100 124 132 132');
+      tears.setAttribute('opacity', strong ? '1':'0');
+    } else {
+      // green: 편안하고 차분함: 감은 눈 + 은은한 미소
+      leftEye.setAttribute('opacity','0');
+      rightEye.setAttribute('opacity','0');
+      leftEyeClosed.setAttribute('opacity','1');
+      rightEyeClosed.setAttribute('opacity','1');
+      leftBrow.setAttribute('d','M55 60 Q70 58 85 60');
+      rightBrow.setAttribute('d','M115 60 Q130 58 145 60');
+      mouth.setAttribute('d','M68 128 Q100 138 132 128');
+    }
+  }
+
+  // ---------- 화면 텍스트 갱신 ----------
+  function positionLabel(p, e){
+    const dist = Math.hypot(p-50, e-50);
+    if(dist < 12) return '가운데';
+    return quadrantLabel(quadrantOf(p, e));
+  }
+
+  function faceDescription(q, dist){
+    if(dist < 12) return '가운데에서는 색이 가장 연하고 표정도 중간에 가까워요.';
+    const map = {
+      red: '빨간 영역이에요. 기분은 안 좋고 힘은 많이 있어요.',
+      yellow: '노란 영역이에요. 기분도 좋고 힘도 많이 있어요.',
+      blue: '파란 영역이에요. 기분은 안 좋고 힘은 적어요.',
+      green: '초록 영역이에요. 기분은 좋고 힘은 적어서 편안해요.'
+    };
+    return map[q];
+  }
+
+  function friendLabel(){
+    const name = friendNameInput.value.trim();
+    return name ? name : '친구';
+  }
+
+  function render(){
+    const p = Number(pleasantInput.value);
+    const e = Number(energyInput.value);
+    pleasantValue.textContent = p + '점';
+    energyValue.textContent = e + '점';
+
+    setMarkerPosition(p, e);
+
+    const q = quadrantOf(p, e);
+    const dist = Math.hypot(p-50, e-50);
+    const word = mainWordOf(q, p, e);
+
+    updateFace(q, p, e);
+
+    mainEmotion.textContent = word;
+    mainEmotionMini.textContent = word;
+    positionText.textContent = positionLabel(p, e);
+    faceText.textContent = faceDescription(q, dist);
+    faceTitle.textContent = `😊 ${friendLabel()}의 표정이 실시간으로 바뀌어요`;
+
+    emotionChips.innerHTML = '';
+    wordBank[q].forEach(w=>{
+      const chip = document.createElement('span');
+      chip.className = 'chip';
+      chip.textContent = w;
+      chip.style.background = w === word ? quadrantColorVar(q) : 'rgba(255,255,255,0.9)';
+      chip.style.color = w === word ? '#fff' : 'inherit';
+      emotionChips.appendChild(chip);
+    });
+  }
+
+  // ---------- 슬라이더 이벤트 ----------
+  pleasantInput.addEventListener('input', render);
+  energyInput.addEventListener('input', render);
+
+  // ---------- 무드미터 클릭/드래그 이벤트 ----------
+  function posFromClientXY(clientX, clientY){
+    const rect = meterBox.getBoundingClientRect();
+    let x = (clientX - rect.left) / rect.width;
+    let y = (clientY - rect.top) / rect.height;
+    x = Math.max(0, Math.min(1, x));
+    y = Math.max(0, Math.min(1, y));
+    const p = Math.round(x * 100);
+    const e = Math.round((1 - y) * 100);
+    return {p, e};
+  }
+
+  function applyPointer(clientX, clientY){
+    const {p, e} = posFromClientXY(clientX, clientY);
+    pleasantInput.value = p;
+    energyInput.value = e;
+    render();
+  }
+
+  let dragging = false;
+
+  meterBox.addEventListener('pointerdown', (ev)=>{
+    dragging = true;
+    meterBox.setPointerCapture(ev.pointerId);
+    applyPointer(ev.clientX, ev.clientY);
+  });
+  meterBox.addEventListener('pointermove', (ev)=>{
+    if(!dragging) return;
+    applyPointer(ev.clientX, ev.clientY);
+  });
+  meterBox.addEventListener('pointerup', (ev)=>{
+    dragging = false;
+  });
+  meterBox.addEventListener('pointercancel', ()=>{
+    dragging = false;
+  });
+
+  // ---------- 버튼 ----------
+  centerBtn.addEventListener('click', ()=>{
+    pleasantInput.value = 50;
+    energyInput.value = 50;
+    render();
+  });
+
+  resetBtn.addEventListener('click', ()=>{
+    pleasantInput.value = 50;
+    energyInput.value = 50;
+    friendNameInput.value = '';
+    render();
+  });
+
+  saveBtn.addEventListener('click', ()=>{
+    const p = Number(pleasantInput.value);
+    const e = Number(energyInput.value);
+    const q = quadrantOf(p, e);
+    const word = mainWordOf(q, p, e);
+    const name = friendLabel();
+
+    const item = {
+      name,
+      p, e, q, word,
+      time: new Date().toLocaleTimeString('ko-KR', {hour:'2-digit', minute:'2-digit'})
+    };
+
+    savedEmotions.unshift(item);
+    if(savedEmotions.length > MAX_SAVED){
+      savedEmotions = savedEmotions.slice(0, MAX_SAVED);
+    }
+    renderSavedList();
+  });
+
+  function miniFaceSvg(q){
+    // 저장 카드용 아주 작은 표정 미리보기 (색상 원 + 간단 입모양)
+    const bgColorMap = {
+      red:'#ffd3d3', yellow:'#fff2c2', blue:'#cfe7ff', green:'#cdefd6'
+    };
+    const mouthMap = {
+      red:'M22 62 Q40 50 58 62',
+      yellow:'M20 55 Q40 78 60 55',
+      blue:'M22 60 Q40 50 58 60',
+      green:'M24 56 Q40 64 56 56'
+    };
+    return `<svg viewBox="0 0 80 80" width="100%" height="100%">
+      <circle cx="40" cy="40" r="34" fill="${bgColorMap[q]}" stroke="#d3caca" stroke-width="2"></circle>
+      <circle cx="28" cy="34" r="4" fill="#2e2a2a"></circle>
+      <circle cx="52" cy="34" r="4" fill="#2e2a2a"></circle>
+      <path d="${mouthMap[q]}" fill="none" stroke="#2e2a2a" stroke-width="4" stroke-linecap="round"></path>
+    </svg>`;
+  }
+
+  function renderSavedList(){
+    if(savedEmotions.length === 0){
+      savedList.innerHTML = '';
+      savedList.appendChild(emptyBox);
+      return;
+    }
+
+    savedList.innerHTML = '';
+    savedEmotions.forEach(item=>{
+      const el = document.createElement('div');
+      el.className = 'saved-item';
+      el.innerHTML = `
+        <div class="saved-top">
+          <div class="saved-face">${miniFaceSvg(item.q)}</div>
+          <div>
+            <div class="saved-name">👤 ${escapeHtml(item.name)}</div>
+            <div class="saved-sub">${item.time} 저장</div>
+          </div>
+        </div>
+        <div class="saved-main">💖 ${escapeHtml(item.word)}</div>
+        <div class="saved-sub">📍 기분 ${item.p}점 · 힘 ${item.e}점 · ${quadrantLabel(item.q)}</div>
+      `;
+      savedList.appendChild(el);
+    });
+  }
+
+  function escapeHtml(str){
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  // ---------- 초기 렌더 ----------
+  render();
+  renderSavedList();
+})();
+</script>
+</body>
+</html>
