@@ -772,7 +772,7 @@
   const emptyBox = document.getElementById('emptyBox');
 
   const MAX_SAVED = 6;
-  let savedEmotions = [];
+  let savedEmotions = []; try { savedEmotions = JSON.parse(localStorage.getItem('savedEmotions') || '[]'); } catch(e){}
 
   // ---------- 감정 단어 데이터 (사분면 x 세부 위치) ----------
   // 사분면: TL(빨강,기분나쁨+힘많음), TR(노랑,기분좋음+힘많음), BL(파랑,기분나쁨+힘적음), BR(초록,기분좋음+힘적음)
@@ -929,6 +929,10 @@
       chip.style.color = w === word ? '#fff' : 'inherit';
       emotionChips.appendChild(chip);
     });
+
+    // 로컬 스토리지에 친구 감정 상태 저장 (temperature.html 연동용)
+    const name = friendLabel();
+    localStorage.setItem('friendMood', JSON.stringify({ p, e, q, word, name }));
   }
 
   // ---------- 슬라이더 이벤트 ----------
@@ -1003,7 +1007,7 @@
     if(savedEmotions.length > MAX_SAVED){
       savedEmotions = savedEmotions.slice(0, MAX_SAVED);
     }
-    renderSavedList();
+    localStorage.setItem('savedEmotions', JSON.stringify(savedEmotions)); renderSavedList();
   });
 
   function miniFaceSvg(q){
