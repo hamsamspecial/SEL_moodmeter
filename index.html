@@ -491,7 +491,6 @@
     setInterval(createParticle, 400);
   </script>
 
-  <!-- Firebase Google 로그인 -->
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js';
     import { getAnalytics } from 'https://www.gstatic.com/firebasejs/12.15.0/firebase-analytics.js';
@@ -508,48 +507,59 @@
     };
 
     const app = initializeApp(firebaseConfig);
-    const analytics = getAnalytics(app);
+    getAnalytics(app);
     const auth = getAuth(app);
     const provider = new GoogleAuthProvider();
 
-    // 로그인 상태 감지 - 이미 로그인한 경우 자동으로 다음 화면으로
+    // 이미 로그인된 상태인지 감지
     onAuthStateChanged(auth, (user) => {
+      const btn = document.getElementById('googleLoginBtn');
+      const btnText = document.getElementById('loginBtnText');
+      const userInfo = document.getElementById('userInfo');
+
       if (user) {
-        document.getElementById('loginBtnText').textContent = user.displayName + '님 환영합니다! 🌟';
-        document.getElementById('userInfo').style.display = 'block';
-        document.getElementById('userInfo').textContent = '로그인되었습니다. 버튼을 눌러 시작하세요!';
-        // 로그인 성공 시 버튼 클릭하면 윤리 안내 팝업으로 이동
-        document.getElementById('googleLoginBtn').onclick = () => {
+        // 이미 로그인됨 → 버튼 텍스트 변경, 클릭 시 윤리 팝업 열기
+        btnText.textContent = user.displayName + '님 환영합니다! 🌟';
+        userInfo.style.display = 'block';
+        userInfo.textContent = '버튼을 눌러 시작하세요!';
+        btn.disabled = false;
+        // window 함수를 '윤리 팝업 열기'로 교체
+        window.googleLogin = function() {
           document.getElementById('ethicModal').classList.add('active');
         };
-        // localStorage에 사용자 정보 저장 (다른 페이지에서 활용)
         localStorage.setItem('userName', user.displayName);
         localStorage.setItem('userEmail', user.email);
         localStorage.setItem('userPhoto', user.photoURL || '');
+      } else {
+        // 로그인 안 됨 → 기본 구글 로그인 팝업 실행
+        btnText.textContent = 'Google 로그인';
+        userInfo.style.display = 'none';
+        btn.disabled = false;
+        window.googleLogin = function() {
+          btn.disabled = true;
+          btnText.textContent = '로그인 중...';
+          signInWithPopup(auth, provider)
+            .then((result) => {
+              const user = result.user;
+              localStorage.setItem('userName', user.displayName);
+              localStorage.setItem('userEmail', user.email);
+              localStorage.setItem('userPhoto', user.photoURL || '');
+              // 로그인 성공 → 윤리 안내 팝업 열기
+              document.getElementById('ethicModal').classList.add('active');
+              btnText.textContent = user.displayName + '님 환영합니다! 🌟';
+              btn.disabled = false;
+            })
+            .catch((error) => {
+              console.error('로그인 실패:', error);
+              btn.disabled = false;
+              btnText.textContent = 'Google 로그인';
+              if (error.code !== 'auth/popup-closed-by-user') {
+                alert('로그인에 실패했습니다. 다시 시도해 주세요.');
+              }
+            });
+        };
       }
     });
-
-    // 구글 로그인 팝업 함수 (window에 등록해야 onclick에서 사용 가능)
-    window.googleLogin = function() {
-      const btn = document.getElementById('googleLoginBtn');
-      btn.disabled = true;
-      document.getElementById('loginBtnText').textContent = '로그인 중...';
-
-      signInWithPopup(auth, provider)
-        .then((result) => {
-          const user = result.user;
-          // 로그인 성공 → 윤리 안내 모달 열기
-          document.getElementById('ethicModal').classList.add('active');
-        })
-        .catch((error) => {
-          console.error('로그인 실패:', error);
-          btn.disabled = false;
-          document.getElementById('loginBtnText').textContent = 'Google 로그인';
-          if (error.code !== 'auth/popup-closed-by-user') {
-            alert('로그인에 실패했습니다. 다시 시도해 주세요.');
-          }
-        });
-    };
   </script>
 </body>
 </html>
