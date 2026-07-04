@@ -1,0 +1,1149 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>무드미터로 나의 감정 찾기</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <style>
+    @font-face {
+      font-family: 'Okticon';
+      src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2408@1.0/Ownglyph_okticon-Lt.woff2') format('woff2');
+      font-weight: 300;
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: 'Okticon';
+      src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2408@1.0/Ownglyph_okticon-Rg.woff2') format('woff2');
+      font-weight: 400;
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: 'Okticon';
+      src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2408@1.0/Ownglyph_okticon-Bd.woff2') format('woff2');
+      font-weight: 700;
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: 'GangwonEducationSaeum';
+      src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2201-2@1.0/GangwonEduSaeeum_OTFMediumA.woff') format('woff');
+      font-weight: normal;
+      font-display: swap;
+    }
+
+    :root {
+      --bg1:#fffaf6;
+      --bg2:#fff1f6;
+      --panel:#ffffff;
+      --panel-solid: #ffffff;
+      --text:#3a2f35;
+      --sub:#7a6f75;
+      --line:#efdfe6;
+      --line-solid: #e2d9f3;
+      --accent:#9b7cf3;
+      --accent2:#ff9ec4;
+      --shadow:0 12px 30px rgba(120,90,110,0.10);
+      --radius: 26px;
+      --radius-sm: 18px;
+
+      --red: #ef6b6b;
+      --yellow: #f5cf4f;
+      --green: #65c27b;
+      --blue: #69b0ee;
+      --gray: #adb5c4;
+
+      --face-red: #fff0f0;
+      --face-yellow: #fff8df;
+      --face-blue: #eef7ff;
+      --face-green: #eefbef;
+      --face-gray: #dddde4;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      min-height: 100vh;
+      color: var(--text);
+    }
+
+    body {
+      font-family: 'GangwonEducationSaeum', 'Okticon', 'Apple SD Gothic Neo', sans-serif;
+      line-height: 1.55;
+      background:
+        radial-gradient(circle at 10% 10%, #ffffff 0 10%, transparent 10.5%),
+        radial-gradient(circle at 90% 12%, #d4fcd9 0 8%, transparent 8.5%),
+        radial-gradient(circle at 18% 88%, #dce4ff 0 9%, transparent 9.5%),
+        radial-gradient(circle at 83% 80%, #fbe4ff 0 8%, transparent 8.5%),
+        linear-gradient(180deg,var(--bg1),var(--bg2));
+      background-size:120px 120px, 180px 180px, 160px 160px, 170px 170px, auto;
+      background-attachment: fixed;
+    }
+
+    h1, h2, h3, .header-badge, .hint, .control label, button, input, .emotion-main, .emotion-title, summary, .toggle-sub, .big, .face-title, .chip {
+      font-family: 'Okticon', sans-serif;
+    }
+/* ─── Layout ─────────────────────── */
+    .wrap {
+      max-width: 1160px;
+      margin: 0 auto;
+      padding: 28px 20px 52px;
+    }
+
+    /* ─── Header ─────────────────────── */
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .header-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(139, 92, 246, 0.1);
+      border: 1.5px solid rgba(139, 92, 246, 0.22);
+      border-radius: 999px;
+      padding: 7px 18px;
+      font-size: clamp(0.92rem, 1.8vw, 1.05rem);
+      color: var(--accent);
+      margin-bottom: 12px;
+      letter-spacing: 0.01em;
+    }
+
+    .header h1 {
+      font-family: 'Okticon', sans-serif;
+      font-size: clamp(2rem, 5vw, 3.4rem);
+      letter-spacing: -0.01em;
+      background: linear-gradient(135deg, #6d28d9 0%, #a855f7 50%, #8b5cf6 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1.25;
+    }
+
+    .header p {
+      margin-top: 10px;
+      font-family: 'GangwonEducationSaeum', sans-serif;
+      font-size: clamp(1.45rem, 3vw, 1.77rem);
+      color: var(--sub);
+      font-weight: 700;
+    }
+
+    /* ─── Top Grid ─────────────────── */
+    .top-grid {
+      display: grid;
+      grid-template-columns: 1.25fr 0.75fr;
+      gap: 20px;
+      align-items: start;
+    }
+
+    @media (max-width: 900px) {
+      .top-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* ─── Card ─────────────────────── */
+    .card {
+      background: var(--panel);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1.5px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 22px;
+    }
+
+    /* ─── Meter Section ─────────────── */
+    .meter-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .meter-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .meter-head h2 {
+      font-family: 'Okticon', sans-serif;
+      font-size: clamp(1.3rem, 2.6vw, 1.8rem);
+      letter-spacing: -0.01em;
+    }
+
+    .hint {
+      font-family: 'GangwonEducationSaeum', sans-serif;
+      font-size: clamp(1.25rem, 2.4vw, 1.44rem);
+      color: var(--sub);
+      font-weight: 800;
+      background: rgba(139, 92, 246, 0.07);
+      padding: 6px 14px;
+      border-radius: 999px;
+      border: 1.5px dashed rgba(139, 92, 246, 0.25);
+    }
+
+    /* ─── Meter Box ─────────────────── */
+    .meter-box {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      /* viewBox 0 0 100 100 과 일치 */
+      border-radius: 22px;
+      overflow: hidden;
+      border: 2px solid var(--line-solid);
+      background: #fff;
+      touch-action: none;
+      user-select: none;
+      cursor: crosshair;
+      box-shadow: inset 0 2px 8px rgba(100, 80, 180, 0.07);
+      max-height: 58vh;
+      margin: 0 auto;
+    }
+
+    .meter-box svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .ax-main {
+      font-size: 4.2px;
+      font-weight: 900;
+      fill: rgba(50, 40, 80, 0.68);
+      font-family: 'GangwonEducationSaeum', sans-serif;
+    }
+
+    .ax-corner {
+      font-size: 3.8px;
+      font-weight: 800;
+      fill: rgba(50, 40, 80, 0.6);
+      font-family: 'GangwonEducationSaeum', sans-serif;
+    }
+
+    .dot-ring {
+      filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.25));
+    }
+
+    /* ─── Controls ──────────────────── */
+    .controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    @media (max-width: 600px) {
+      .controls {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .control {
+      background: rgba(139, 92, 246, 0.04);
+      border: 1.5px solid var(--line-solid);
+      border-radius: var(--radius-sm);
+      padding: 14px 16px;
+    }
+
+    .control label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: 'Okticon', sans-serif;
+      font-size: clamp(0.95rem, 1.9vw, 1.1rem);
+      margin-bottom: 10px;
+      gap: 8px;
+    }
+
+    .value-badge {
+      font-family: 'GangwonEducationSaeum', sans-serif;
+      font-weight: 800;
+      font-size: 0.98rem;
+      min-width: 52px;
+      text-align: center;
+      background: white;
+      border: 1.5px solid var(--line-solid);
+      border-radius: 999px;
+      padding: 3px 10px;
+      color: var(--accent);
+      flex-shrink: 0;
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 9px;
+      border-radius: 999px;
+      background: linear-gradient(to right, #8b5cf6, #d946ef);
+      outline: none;
+      cursor: pointer;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #fff;
+      border: 2.5px solid #8b5cf6;
+      box-shadow: 0 2px 10px rgba(139, 92, 246, 0.35);
+      cursor: pointer;
+      transition: transform 0.15s;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+    }
+
+    /* ─── Buttons ───────────────────── */
+    .btns {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      border: none;
+      border-radius: var(--radius-sm);
+      padding: 13px 22px;
+      font-family: 'Okticon', sans-serif;
+      font-size: clamp(0.92rem, 1.8vw, 1.05rem);
+      cursor: pointer;
+      transition: transform 0.12s, box-shadow 0.12s;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.13);
+    }
+
+    button:active {
+      transform: scale(0.97);
+    }
+
+    .reset {
+      background: linear-gradient(135deg, #ffe0e0, #ffcfcf);
+      color: #8b3535;
+      border: 1.5px solid #ffb5b5;
+    }
+
+    .center-btn {
+      background: linear-gradient(135deg, #eee8ff, #ddd0ff);
+      color: #5a3bbf;
+      border: 1.5px solid #c5b2ff;
+    }
+
+    /* ─── Side ──────────────────────── */
+    .side {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .face-card {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .face-title {
+      font-family: 'Okticon', sans-serif;
+      font-size: clamp(1.05rem, 2vw, 1.25rem);
+      align-self: flex-start;
+      letter-spacing: -0.01em;
+    }
+
+    .face-wrap {
+      width: 100%;
+      max-width: 220px;
+      aspect-ratio: 1 / 1;
+      background:
+        radial-gradient(circle at 30% 22%, rgba(255, 255, 255, 0.7) 0 10%, transparent 11%),
+        linear-gradient(180deg, #fff, #fff6fb);
+      border-radius: 22px;
+      border: 2px dashed #e8d8f5;
+      padding: 8px;
+      filter: drop-shadow(0 8px 20px rgba(120, 90, 180, 0.15));
+    }
+
+    .mini-status {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .pill {
+      background: rgba(139, 92, 246, 0.06);
+      border: 1.5px solid var(--line-solid);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+    }
+
+    .pill .label {
+      font-family: 'GangwonEducationSaeum', sans-serif;
+      color: var(--sub);
+      font-size: 1.23rem;
+      font-weight: 800;
+      letter-spacing: 0.01em;
+    }
+
+    .pill .big {
+      margin-top: 5px;
+      font-family: 'Okticon', sans-serif;
+      font-size: clamp(1rem, 2.5vw, 1.3rem);
+      word-break: keep-all;
+    }
+
+    .face-text {
+      font-family: 'GangwonEducationSaeum', sans-serif;
+      font-size: clamp(1.32rem, 2.7vw, 1.45rem);
+      color: var(--sub);
+      font-weight: 700;
+      text-align: center;
+      background: rgba(139, 92, 246, 0.05);
+      border-radius: 14px;
+      border: 1.5px dashed rgba(139, 92, 246, 0.2);
+      padding: 11px 14px;
+      width: 100%;
+      word-break: keep-all;
+      line-height: 1.65;
+    }
+
+    /* ─── Toggle ─────────────────────── */
+    details.toggle-card {
+      margin-top: 22px;
+      background: var(--panel);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1.5px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    details.toggle-card summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 20px 24px;
+      font-family: 'Okticon', sans-serif;
+      font-size: clamp(1.05rem, 2.2vw, 1.35rem);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      transition: background 0.15s;
+    }
+
+    details.toggle-card summary:hover {
+      background: rgba(139, 92, 246, 0.04);
+    }
+
+    details.toggle-card summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .toggle-left {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .toggle-sub {
+      font-family: 'GangwonEducationSaeum', sans-serif;
+      color: var(--sub);
+      font-size: clamp(1.26rem, 2.4vw, 1.41rem);
+      font-weight: 700;
+    }
+
+    .arrow {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: rgba(139, 92, 246, 0.1);
+      color: var(--accent);
+      font-size: 1.15rem;
+      flex-shrink: 0;
+      transition: transform 0.25s;
+    }
+
+    details[open] .arrow {
+      transform: rotate(180deg);
+    }
+
+    .toggle-content {
+      padding: 0 22px 22px;
+      display: grid;
+      grid-template-columns: 1fr 1.1fr;
+      gap: 16px;
+    }
+
+    @media (max-width: 800px) {
+      .toggle-content {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* ─── Emotion Box ─────────────────── */
+    .emotion-box {
+      border-radius: 22px;
+      padding: 18px;
+      border: 1.5px solid var(--line-solid);
+      background: white;
+      transition: background 0.4s;
+    }
+
+    .emotion-title {
+      font-family: 'GangwonEducationSaeum', sans-serif;
+      font-size: 1.26rem;
+      font-weight: 800;
+      color: var(--sub);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .emotion-main {
+      font-family: 'Okticon', sans-serif;
+      font-size: clamp(1.7rem, 4vw, 2.4rem);
+      margin-bottom: 14px;
+      letter-spacing: -0.01em;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .chip {
+      font-family: 'Okticon', sans-serif;
+      padding: 8px 16px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.9);
+      border: 1.5px solid rgba(0, 0, 0, 0.1);
+      font-size: clamp(0.88rem, 1.8vw, 1rem);
+      transition: background 0.2s, color 0.2s;
+    }
+
+    /* ─── Concept ─────────────────────── */
+    .concept {
+      border-radius: 22px;
+      padding: 18px;
+      border: 1.5px dashed rgba(139, 92, 246, 0.3);
+      background: linear-gradient(135deg, rgba(139, 92, 246, 0.05), rgba(217, 70, 239, 0.04));
+      grid-column: 1 / -1;
+    }
+
+    .concept h3 {
+      font-family: 'Okticon', sans-serif;
+      margin-bottom: 10px;
+      font-size: clamp(1.05rem, 2vw, 1.25rem);
+      color: var(--accent);
+    }
+
+    .concept ul {
+      font-family: 'GangwonEducationSaeum', sans-serif;
+      padding-left: 1.2em;
+      font-size: clamp(1.35rem, 2.7vw, 1.53rem);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      color: #4a3d6a;
+      font-weight: 700;
+    }
+
+    /* ─── Footer ──────────────────────── */
+    .footer-note {
+      text-align: center;
+      color: var(--sub);
+      margin-top: 22px;
+      font-family: 'GangwonEducationSaeum', sans-serif;
+      font-size: clamp(1.35rem, 2.7vw, 1.53rem);
+      font-weight: 700;
+    }
+
+    .footer-note span {
+      background: rgba(139, 92, 246, 0.08);
+      border-radius: 999px;
+      padding: 9px 22px;
+      display: inline-block;
+    }
+  
+          .inner-emoji {
+            position: absolute;
+            color: #ffffff;
+            font-family: 'Okticon', sans-serif;
+            font-size: clamp(1.1rem, 2.2vw, 1.35rem);
+            font-weight: 700;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.35);
+            pointer-events: none;
+            z-index: 10;
+          }
+        </style>
+</head>
+
+<body>
+  <a href="main.html" style="position: fixed; top: 16px; left: 16px; text-decoration: none; font-size: 2rem; background: rgba(255,255,255,0.9); border-radius: 50%; width: 54px; height: 54px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; border: 2px solid #e2d9f3; transition: transform 0.2s;" title="첫 화면으로" onmouseover="this.style.transform=&apos;scale(1.1)&apos;" onmouseout="this.style.transform=&apos;scale(1)&apos;">🏠</a>
+  <div class="wrap">
+
+    <!-- Header -->
+    <div class="header">
+      <div class="header-badge">🌈 SEL 감정 교육</div>
+      <h1>무드미터로 나의 감정 찾기</h1>
+      <p>내 마음의 위치를 움직여 보고, 색과 표정이 어떻게 달라지는지 살펴보세요.</p>
+    </div>
+
+    <div class="top-grid">
+
+      <!-- 왼쪽: 무드미터 -->
+      <section class="card meter-wrap">
+        <div class="meter-head">
+          <h2>🧭 내 마음의 위치</h2>
+          <div class="hint">👆 누르기 · 드래그 · 슬라이더</div>
+        </div>
+
+        
+        <style>
+          .axis-label {
+            font-family: 'Okticon', sans-serif;
+            font-size: 1.5rem;
+            color: var(--sub);
+            text-align: center;
+          }
+          .corner-label {
+            position: absolute;
+            font-family: 'Okticon', sans-serif;
+            font-size: 1.4rem;
+            color: rgba(50,40,80,0.8);
+            pointer-events: none;
+            z-index: 10;
+          }
+          @keyframes prism {
+            0% { filter: hue-rotate(0deg) drop-shadow(0 0 10px rgba(255,100,100,0.8)); }
+            33% { filter: hue-rotate(120deg) drop-shadow(0 0 10px rgba(100,255,100,0.8)); }
+            66% { filter: hue-rotate(240deg) drop-shadow(0 0 10px rgba(100,100,255,0.8)); }
+            100% { filter: hue-rotate(360deg) drop-shadow(0 0 10px rgba(255,100,100,0.8)); }
+          }
+          .heart-marker {
+            animation: prism 3s infinite linear;
+            transform-origin: center;
+            transition: transform 0.1s;
+          }
+        </style>
+        
+        <div class="axis-label" style="margin-bottom: 8px;">↑ 힘 많음</div>
+        <div style="display: flex; align-items: stretch; position: relative;">
+          <div class="axis-label" style="writing-mode: vertical-rl; margin-right: 8px;">기분 나쁨 ←</div>
+          
+          <div class="meter-box" id="meterBox" aria-label="무드미터" style="flex:1; margin: 0; overflow:visible;">
+            <div class="inner-emoji" style="top: 12px; left: 16px;">😣 빨강</div>
+            <div class="inner-emoji" style="top: 12px; right: 16px;">😄 노랑</div>
+            <div class="inner-emoji" style="bottom: 12px; left: 16px;">😢 파랑</div>
+            <div class="inner-emoji" style="bottom: 12px; right: 16px;">😌 초록</div>
+
+            
+            
+            <svg id="meterSvg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" style="width: 100%; height: 100%; border-radius: 22px; overflow: hidden; display: block;">
+              <defs>
+                <radialGradient id="gTL" cx="0%" cy="0%" r="115%" gradientUnits="objectBoundingBox"><stop offset="0%" stop-color="var(--red)" /><stop offset="55%" stop-color="#f28b8b" /><stop offset="100%" stop-color="#adb5c4" /></radialGradient>
+                <radialGradient id="gTR" cx="100%" cy="0%" r="115%" gradientUnits="objectBoundingBox"><stop offset="0%" stop-color="var(--yellow)" /><stop offset="55%" stop-color="#f7dd79" /><stop offset="100%" stop-color="#adb5c4" /></radialGradient>
+                <radialGradient id="gBL" cx="0%" cy="100%" r="115%" gradientUnits="objectBoundingBox"><stop offset="0%" stop-color="var(--blue)" /><stop offset="55%" stop-color="#8bc5f7" /><stop offset="100%" stop-color="#adb5c4" /></radialGradient>
+                <radialGradient id="gBR" cx="100%" cy="100%" r="115%" gradientUnits="objectBoundingBox"><stop offset="0%" stop-color="var(--green)" /><stop offset="55%" stop-color="#8cdb9d" /><stop offset="100%" stop-color="#adb5c4" /></radialGradient>
+              </defs>
+
+              <rect x="0" y="0" width="50" height="50" fill="url(#gTL)" />
+              <rect x="50" y="0" width="50" height="50" fill="url(#gTR)" />
+              <rect x="0" y="50" width="50" height="50" fill="url(#gBL)" />
+              <rect x="50" y="50" width="50" height="50" fill="url(#gBR)" />
+              <line x1="50" y1="0" x2="50" y2="100" stroke="rgba(255,255,255,0.75)" stroke-width="0.9" />
+              <line x1="0" y1="50" x2="100" y2="50" stroke="rgba(255,255,255,0.75)" stroke-width="0.9" />
+              
+              
+              <g id="marker" class="heart-marker" style="pointer-events:none;">
+                <path d="M50 56 C 50 56 42 48 42 44 A 4 4 0 0 1 50 42 A 4 4 0 0 1 58 44 C 58 48 50 56 50 56 Z" fill="#ffffff" stroke="#ff4d4d" stroke-width="1" />
+              </g>
+            </svg>
+          </div>
+          
+          <div class="axis-label" style="writing-mode: vertical-rl; margin-left: 8px;">→ 기분 좋음</div>
+        </div>
+        <div class="axis-label" style="margin-top: 8px;">↓ 힘 적음</div>
+
+      <!-- 슬라이더 -->
+        <div class="controls">
+          <div class="control">
+            <label for="pleasant">
+              <span>🙂 기분이 좋고 나쁨</span>
+              <span class="value-badge" id="pleasantValue">50점</span>
+            </label>
+            <input type="range" id="pleasant" min="0" max="100" value="50" />
+          </div>
+          <div class="control">
+            <label for="energy">
+              <span>⚡ 힘이 있는 정도</span>
+              <span class="value-badge" id="energyValue">50점</span>
+            </label>
+            <input type="range" id="energy" min="0" max="100" value="50" />
+          </div>
+        </div>
+
+        <!-- 버튼 -->
+        <div class="btns">
+          <button class="save" id="saveBtn" style="background:#8b5cf6; color:#fff; border:none; padding:12px; border-radius:12px; font-size:1.15rem; font-family:'Okticon', sans-serif; cursor:pointer; width:100%; margin-bottom:10px;">💾 내 감정 저장</button>
+          <button class="reset" id="resetBtn">🔄 랜덤으로 놓고 여러가지 감정 익히기</button>
+          <button class="center-btn" id="centerBtn">🎯 가운데로 놓고 다시하기</button>
+        </div>
+      </section>
+
+      <!-- 오른쪽: 표정 + 상태 -->
+      <section class="side">
+        <div class="face-card card">
+          <div class="face-title">😊 표정이 실시간으로 바뀌어요</div>
+
+          <div class="face-wrap">
+            <!-- friends.html 기준 표정 SVG (눈물, 감은눈 포함) -->
+            
+          <svg id="faceSvg" viewBox="0 0 200 200" width="100%" height="100%" aria-hidden="true">
+            <circle id="faceBg" cx="100" cy="100" r="90" fill="#dddde4" stroke="#ffffff" stroke-width="6" />
+            <circle cx="60" cy="115" r="14" fill="#ffb3c6" opacity="0.6"/>
+            <circle cx="140" cy="115" r="14" fill="#ffb3c6" opacity="0.6"/>
+            <path id="leftBrow" d="M50 65 Q65 60 80 65" fill="none" stroke="#3a2f35" stroke-width="6" stroke-linecap="round"/>
+            <path id="rightBrow" d="M120 65 Q135 60 150 65" fill="none" stroke="#3a2f35" stroke-width="6" stroke-linecap="round"/>
+            <ellipse id="leftEye" cx="65" cy="88" rx="8" ry="12" fill="#3a2f35"/>
+            <ellipse id="rightEye" cx="135" cy="88" rx="8" ry="12" fill="#3a2f35"/>
+            <path id="leftEyeHappy" d="M55 88 Q65 72 75 88" fill="none" stroke="#3a2f35" stroke-width="7" stroke-linecap="round" opacity="0"/>
+            <path id="rightEyeHappy" d="M125 88 Q135 72 145 88" fill="none" stroke="#3a2f35" stroke-width="7" stroke-linecap="round" opacity="0"/>
+            <path id="leftEyeClosed" d="M55 88 Q65 98 75 88" fill="none" stroke="#3a2f35" stroke-width="7" stroke-linecap="round" opacity="0"/>
+            <path id="rightEyeClosed" d="M125 88 Q135 98 145 88" fill="none" stroke="#3a2f35" stroke-width="7" stroke-linecap="round" opacity="0"/>
+            <path id="leftEyeAngry" d="M55 78 L75 92" fill="none" stroke="#3a2f35" stroke-width="7" stroke-linecap="round" opacity="0"/>
+            <path id="rightEyeAngry" d="M125 92 L145 78" fill="none" stroke="#3a2f35" stroke-width="7" stroke-linecap="round" opacity="0"/>
+            <path id="mouth" d="M70 135 Q100 135 130 135" fill="none" stroke="#3a2f35" stroke-width="7" stroke-linecap="round"/>
+            <g id="tears" opacity="0">
+              <path d="M65 105 Q60 120 65 130 Q70 120 65 105Z" fill="#8ecfff" stroke="#60b6f0" stroke-width="2"/>
+              <path d="M135 105 Q130 120 135 130 Q140 120 135 105Z" fill="#8ecfff" stroke="#60b6f0" stroke-width="2"/>
+            </g>
+          </svg>
+</div>
+
+          <div class="mini-status">
+            <div class="pill">
+              <div class="label">📍 위치</div>
+              <div class="big" id="positionText">가운데</div>
+            </div>
+            <div class="pill">
+              <div class="label">💖 지금 감정</div>
+              <div class="big" id="mainEmotionMini">보통이에요</div>
+            </div>
+          </div>
+
+          <div class="face-text" id="faceText">
+            가운데에서는 색이 가장 연하고 표정도 중간에 가까워요.
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- 감정 상세 -->
+    <details class="toggle-card">
+      <summary>
+        <div class="toggle-left">
+          <span>📝 지금 내 마음과 감정 낱말 보기</span>
+          <span class="toggle-sub">원할 때 펼쳐서 자세히 볼 수 있어요.</span>
+        </div>
+        <span class="arrow">▾</span>
+      </summary>
+
+      <div class="toggle-content">
+        <div class="card" style="box-shadow:none; background:rgba(255,255,255,0.65);">
+          <h2 style="font-family:'Okticon',sans-serif; margin-bottom:14px; font-size:1.3rem;">지금 내 마음</h2>
+          <div class="mini-status">
+            <div class="pill">
+              <div class="label">📍 위치</div>
+              <div class="big" id="positionText2">가운데</div>
+            </div>
+            <div class="pill">
+              <div class="label">🎭 대표 감정</div>
+              <div class="big" id="mainEmotion">보통이에요</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="emotion-box" id="emotionCard">
+          <div class="emotion-title">🌟 감정 낱말</div>
+          <div class="emotion-main" id="emotionSummary">보통이에요</div>
+          <div class="chips" id="emotionChips"></div>
+        </div>
+
+        <div class="concept">
+          <h3>💡 확인할 개념</h3>
+          <ul>
+            <li>무드미터에서 <strong>내 마음의 위치</strong>를 찾을 수 있어요.</li>
+            <li>가운데에 가까울수록 <strong>색이 연해지고</strong>, 바깥으로 갈수록 진해져요.</li>
+            <li>빨강, 노랑, 초록, 파랑은 서로 다른 감정 느낌을 보여 줘요.</li>
+            <li>같은 색 안에서도 점의 위치가 달라지면 감정 말이 조금씩 달라져요.</li>
+          </ul>
+        </div>
+      </div>
+    </details>
+
+    
+    <section class="saved-card" style="margin-top:20px; background:#fff; border-radius:24px; padding:24px; box-shadow:0 8px 24px rgba(0,0,0,0.05); grid-column:1 / -1;">
+      <div class="saved-head" style="margin-bottom:16px;">
+        <h2 style="font-family:'Okticon',sans-serif; font-size:1.6rem; color:var(--text); margin:0;">📚 저장한 내 감정</h2>
+        <div class="hint" style="font-size:1rem; color:var(--sub);">최대 6개까지 저장돼요.</div>
+      </div>
+      <div id="savedList" class="saved-list" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px,1fr)); gap:16px;">
+        <div class="empty" id="emptyBox" style="grid-column:1/-1; padding:20px; text-align:center; border:2px dashed #eee; border-radius:16px; color:#999;">아직 저장한 감정이 없어요.<br><strong>내 감정 저장</strong> 버튼을 눌러 보세요.</div>
+      </div>
+    </section>
+  
+    <div class="footer-note">
+      <span>💬 팁: "나는 지금 ○○한 마음이야." 라고 말해 보세요.</span>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      // ── 요소 참조 ───────────────────────────────────────────
+      const pleasant = document.getElementById('pleasant');
+      const energy = document.getElementById('energy');
+      const pleasantValue = document.getElementById('pleasantValue');
+      const energyValue = document.getElementById('energyValue');
+
+      const marker = document.getElementById('marker');
+
+      const positionTextEl = document.getElementById('positionText');
+      const positionTextEl2 = document.getElementById('positionText2');
+      const mainEmotionMini = document.getElementById('mainEmotionMini');
+      const mainEmotionEl = document.getElementById('mainEmotion');
+      const emotionSummary = document.getElementById('emotionSummary');
+      const emotionChips = document.getElementById('emotionChips');
+      const emotionCard = document.getElementById('emotionCard');
+      const faceText = document.getElementById('faceText');
+
+      const faceBg = document.getElementById('faceBg');
+      const mouth = document.getElementById('mouth');
+      const leftEye = document.getElementById('leftEye');
+      const rightEye = document.getElementById('rightEye');
+      const leftEyeHappy = document.getElementById('leftEyeHappy');
+      const rightEyeHappy = document.getElementById('rightEyeHappy');
+      const leftEyeClosed = document.getElementById('leftEyeClosed');
+      const rightEyeClosed = document.getElementById('rightEyeClosed');
+      const leftEyeAngry = document.getElementById('leftEyeAngry');
+      const rightEyeAngry = document.getElementById('rightEyeAngry');
+      const leftBrow = document.getElementById('leftBrow');
+      const rightBrow = document.getElementById('rightBrow');
+      const tears = document.getElementById('tears');
+
+      const meterBox = document.getElementById('meterBox');
+      const resetBtn = document.getElementById('resetBtn');
+      const saveBtn = document.getElementById('saveBtn');
+      const savedList = document.getElementById('savedList');
+      const emptyBox = document.getElementById('emptyBox');
+      let savedMyEmotions = [];
+      try { savedMyEmotions = JSON.parse(localStorage.getItem('savedMyEmotions')||"[]"); } catch(e){}
+
+      const centerBtn = document.getElementById('centerBtn');
+
+      // ── 감정 단어 (friends.html 기준) ───────────────────────
+      const wordBank = {
+        red: ['화가 나요', '짜증나요', '답답해요', '불안해요'],
+        yellow: ['신나요', '즐거워요', '들떠요', '기뻐요'],
+        blue: ['슬퍼요', '외로워요', '지쳐요', '속상해요'],
+        green: ['편안해요', '차분해요', '만족해요', '평온해요'],
+      };
+
+      // 사분면 색상 (표정 배경 / 감정카드용)
+      const faceColorMap = {
+        red: '#ffd3d3',
+        yellow: '#fff2c2',
+        blue: '#cfe7ff',
+        green: '#cdefd6',
+        center: '#dddde4',
+      };
+      const cardColorMap = {
+        red: '#ff6b6b',
+        yellow: '#fcc419',
+        blue: '#339af0',
+        green: '#51cf66',
+        center: '#adb5c4',
+      };
+
+      // ── 유틸 ────────────────────────────────────────────────
+      function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+
+      // p: 기분(0=나쁨~100=좋음), e: 에너지(0=낮음~100=높음)
+      function quadrantOf(p, e) {
+        if (p < 50 && e >= 50) return 'red';     // 왼쪽 위
+        if (p >= 50 && e >= 50) return 'yellow'; // 오른쪽 위
+        if (p < 50 && e < 50) return 'blue';    // 왼쪽 아래
+        return 'green';                           // 오른쪽 아래
+      }
+
+      function isCenter(p, e) {
+        return Math.hypot(p - 50, e - 50) < 12;
+      }
+
+      // 대표 감정 단어 (friends.html 방식)
+      function mainWordOf(q, p, e) {
+        const dist = Math.hypot(p - 50, e - 50);
+        if (dist < 12) return '보통이에요';
+        const words = wordBank[q];
+        return dist > 38 ? words[0] : words[Math.min(2, Math.floor(dist / 15))];
+      }
+
+      function positionLabel(p, e) {
+        if (isCenter(p, e)) return '가운데';
+        const q = quadrantOf(p, e);
+        const map = {
+          red: '기분 나쁨 · 힘 많음',
+          yellow: '기분 좋음 · 힘 많음',
+          blue: '기분 나쁨 · 힘 적음',
+          green: '기분 좋음 · 힘 적음',
+        };
+        return map[q];
+      }
+
+      function faceDescription(q, dist) {
+        if (dist < 12) return '가운데에서는 색이 가장 연하고 표정도 중간에 가까워요.';
+        const map = {
+          red: '빨간 영역이에요. 기분은 안 좋고 힘은 많이 있어요.',
+          yellow: '노란 영역이에요. 기분도 좋고 힘도 많이 있어요.',
+          blue: '파란 영역이에요. 기분은 안 좋고 힘은 적어요.',
+          green: '초록 영역이에요. 기분은 좋고 힘은 적어서 편안해요.',
+        };
+        return map[q];
+      }
+
+      // ── 표정 업데이트 (friends.html 기준) ───────────────────
+      function resetFaceParts() {
+        [leftEyeHappy, rightEyeHappy, leftEyeClosed, rightEyeClosed,
+          leftEyeAngry, rightEyeAngry].forEach(el => el.setAttribute('opacity', '0'));
+        leftEye.setAttribute('opacity', '1');
+        rightEye.setAttribute('opacity', '1');
+        tears.setAttribute('opacity', '0');
+      }
+
+      function updateFace(q, p, e) {
+        resetFaceParts();
+        const dist = Math.hypot(p - 50, e - 50);
+        const strong = dist > 30;
+        const center = dist < 12;
+
+        // 배경색
+        faceBg.setAttribute('fill', center ? faceColorMap.center : faceColorMap[q]);
+
+        if (center) {
+          // 가운데: 평범한 중립 표정
+          leftBrow.setAttribute('d', 'M55 60 Q70 58 85 60');
+          rightBrow.setAttribute('d', 'M115 60 Q130 58 145 60');
+          mouth.setAttribute('d', 'M65 130 Q100 130 135 130');
+          return;
+        }
+
+        if (q === 'yellow') {
+          // 신나고 즐거움: 웃는 눈 + 활짝 웃는 입 + 올라간 눈썹
+          leftEye.setAttribute('opacity', '0');
+          rightEye.setAttribute('opacity', '0');
+          leftEyeHappy.setAttribute('opacity', '1');
+          rightEyeHappy.setAttribute('opacity', '1');
+          leftBrow.setAttribute('d', 'M55 55 Q70 48 85 55');
+          rightBrow.setAttribute('d', 'M115 55 Q130 48 145 55');
+          mouth.setAttribute('d', strong
+            ? 'M60 122 Q100 155 140 122'
+            : 'M65 125 Q100 145 135 125');
+
+        } else if (q === 'red') {
+          // 화나고 답답함: 화난 눈썹 + 화난 눈 + 찡그린 입
+          leftEyeAngry.setAttribute('opacity', strong ? '1' : '0');
+          rightEyeAngry.setAttribute('opacity', strong ? '1' : '0');
+          leftEye.setAttribute('opacity', strong ? '0' : '1');
+          rightEye.setAttribute('opacity', strong ? '0' : '1');
+          leftBrow.setAttribute('d', 'M55 66 Q70 58 88 66');
+          rightBrow.setAttribute('d', 'M112 66 Q130 58 145 66');
+          mouth.setAttribute('d', strong
+            ? 'M62 138 Q100 118 138 138'
+            : 'M68 132 Q100 122 132 132');
+
+        } else if (q === 'blue') {
+          // 슬프고 외로움: 처진 눈썹 + 눈물 + 처진 입
+          leftBrow.setAttribute('d', 'M55 62 Q70 66 85 60');
+          rightBrow.setAttribute('d', 'M115 60 Q130 66 145 62');
+          mouth.setAttribute('d', strong
+            ? 'M65 138 Q100 122 135 138'
+            : 'M68 132 Q100 124 132 132');
+          tears.setAttribute('opacity', strong ? '1' : '0');
+
+        } else {
+          // green: 편안하고 차분함 → 감은 눈 + 은은한 미소
+          leftEye.setAttribute('opacity', '0');
+          rightEye.setAttribute('opacity', '0');
+          leftEyeClosed.setAttribute('opacity', '1');
+          rightEyeClosed.setAttribute('opacity', '1');
+          leftBrow.setAttribute('d', 'M55 60 Q70 58 85 60');
+          rightBrow.setAttribute('d', 'M115 60 Q130 58 145 60');
+          mouth.setAttribute('d', 'M68 128 Q100 140 132 128');
+        }
+      }
+
+      // ── 전체 렌더 ────────────────────────────────────────────
+      function render() {
+        const p = Number(pleasant.value);
+        const e = Number(energy.value);
+
+        pleasantValue.textContent = p + '점';
+        energyValue.textContent = e + '점';
+
+        // ✅ SVG viewBox(0~100) ↔ 슬라이더(0~100) 1:1 대응, 정확 이동
+        marker.setAttribute('transform', `translate(${p - 50}, ${100 - e - 50})`);
+
+        const q = quadrantOf(p, e);
+        const dist = Math.hypot(p - 50, e - 50);
+        const word = mainWordOf(q, p, e);
+        const center = dist < 12;
+
+        positionTextEl.textContent = positionLabel(p, e);
+        positionTextEl2.textContent = positionLabel(p, e);
+        mainEmotionMini.textContent = word;
+        mainEmotionEl.textContent = word;
+        emotionSummary.textContent = word;
+
+        // 감정카드 배경
+        const cc = center ? cardColorMap.center : cardColorMap[q];
+        emotionCard.style.background =
+          `linear-gradient(160deg, ${cc}33 0%, #ffffff 55%)`;
+
+        // 감정 칩
+        emotionChips.innerHTML = '';
+        const chipList = center
+          ? ['애매해요', '고르기 어려워요', '생각 중이에요', '지켜보는 중이에요']
+          : wordBank[q];
+
+        chipList.forEach(w => {
+          const chip = document.createElement('span');
+          chip.className = 'chip';
+          chip.textContent = w;
+          // 현재 대표 감정 단어 강조
+          if (w === word) {
+            chip.style.background = center ? cardColorMap.center : cardColorMap[q];
+            chip.style.color = '#fff';
+            chip.style.border = '1.5px solid transparent';
+          }
+          emotionChips.appendChild(chip);
+        });
+
+        // 표정 텍스트
+        faceText.textContent = faceDescription(center ? 'center' : q, dist);
+
+        // 표정 업데이트
+        updateFace(q, p, e);
+
+        // 로컬 스토리지에 내 감정 상태 저장 (temperature.html 연동용)
+        /* removed auto-save, now only saves on btn click */
+      }
+
+      // ── 포인터 → 슬라이더 ────────────────────────────────────
+      // preserveAspectRatio="none" → rect 비율 = SVG 비율 → 좌표 오차 없음
+      function updateFromPointer(clientX, clientY) {
+        const rect = meterBox.getBoundingClientRect();
+        pleasant.value = Math.round(clamp((clientX - rect.left) / rect.width, 0, 1) * 100);
+        energy.value = Math.round(clamp(1 - (clientY - rect.top) / rect.height, 0, 1) * 100);
+        render();
+      }
+
+      let dragging = false;
+
+      meterBox.addEventListener('pointerdown', ev => {
+        dragging = true;
+        meterBox.setPointerCapture(ev.pointerId);
+        updateFromPointer(ev.clientX, ev.clientY);
+      });
+      meterBox.addEventListener('pointermove', ev => {
+        if (!dragging) return;
+        updateFromPointer(ev.clientX, ev.clientY);
+      });
+      // ✅ click 이벤트 없음 → pointerdown과 중복 실행 방지
+      meterBox.addEventListener('pointerup', () => { dragging = false; });
+      meterBox.addEventListener('pointercancel', () => { dragging = false; });
+
+      pleasant.addEventListener('input', render);
+      energy.addEventListener('input', render);
+
+      resetBtn.addEventListener('click', () => {
+        pleasant.value = Math.round(Math.random() * 100);
+        energy.value = Math.round(Math.random() * 100);
+        render();
+      });
+      centerBtn.addEventListener('click', () => {
+        pleasant.value = 50;
+        energy.value = 50;
+        render();
+      });
+
+      render();
+
+      function quadrantEmoji(q) {
+        return {red:'😡', yellow:'😄', blue:'😢', green:'😌'}[q];
+      }
+      
+      function renderSavedList() {
+        if(savedMyEmotions.length === 0){
+          savedList.innerHTML = '';
+          savedList.appendChild(emptyBox);
+          return;
+        }
+        savedList.innerHTML = '';
+        savedMyEmotions.forEach(item => {
+          const el = document.createElement('div');
+          el.style.cssText = 'background:#f8f6fb; padding:16px; border-radius:16px; display:flex; align-items:center; gap:16px;';
+          el.innerHTML = `
+            <div style="font-size:2.5rem;">${quadrantEmoji(item.q)}</div>
+            <div>
+              <div style="font-weight:bold; font-size:1.2rem;">${item.word}</div>
+              <div style="color:#666; font-size:0.9rem;">${item.time} 저장</div>
+            </div>
+          `;
+          savedList.appendChild(el);
+        });
+      }
+
+      saveBtn.addEventListener('click', () => {
+        const p = Number(pleasant.value);
+        const e = Number(energy.value);
+        const q = quadrantOf(p, e);
+        const word = mainWordOf(q, p, e);
+        const item = { p, e, q, word, time: new Date().toLocaleTimeString('ko-KR', {hour:'2-digit', minute:'2-digit'}) };
+        savedMyEmotions = [item];
+        
+        localStorage.setItem('savedMyEmotions', JSON.stringify(savedMyEmotions));
+        // 최근 저장한 감정을 최상위 연동 데이터로도 저장 (temperature.html 용도)
+        localStorage.setItem('myMood', JSON.stringify({ p, e, q, word, emoji: quadrantEmoji(q) }));
+        renderSavedList();
+      });
+      
+      // 초기 렌더링 시 목록 그리기
+      renderSavedList();
+  
+    })();
+  </script>
+</body>
+
+</html>

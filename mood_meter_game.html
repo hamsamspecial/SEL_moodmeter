@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>무드미터 마음 감정 게임</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @font-face {
+            font-family: 'Okticon';
+            src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2408@1.0/Ownglyph_okticon-Lt.woff2') format('woff2');
+            font-weight: 300;
+            font-display: swap;
+        }
+        @font-face {
+            font-family: 'Okticon';
+            src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2408@1.0/Ownglyph_okticon-Rg.woff2') format('woff2');
+            font-weight: 400;
+            font-display: swap;
+        }
+        @font-face {
+            font-family: 'Okticon';
+            src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2408@1.0/Ownglyph_okticon-Bd.woff2') format('woff2');
+            font-weight: 700;
+            font-display: swap;
+        }
+        @font-face {
+            font-family: 'GangwonEducationSaeum';
+            src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2201-2@1.0/GangwonEduSaeeum_OTFMediumA.woff') format('woff');
+            font-weight: normal;
+            font-display: swap;
+        }
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #f3f4f6;
+            touch-action: none;
+            /* 모바일에서 스와이프 방지 */
+            font-family: 'GangwonEducationSaeum', 'Pretendard', sans-serif;
+            font-size: 1.25rem;
+        }
+
+        h1, h2, .font-bold {
+            font-family: 'Okticon', sans-serif;
+        }
+
+        #game-container {
+            position: relative;
+            width: 100%;
+            max-width: 480px;
+            height: 100vh;
+            margin: 0 auto;
+            background-color: #ffffff;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            flex-grow: 1;
+        }
+
+        .control-btn {
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .control-btn:active {
+            background-color: #e5e7eb;
+        }
+
+        /* 색상 정의 */
+        .color-red {
+            color: #ef4444;
+        }
+
+        .color-blue {
+            color: #3b82f6;
+        }
+
+        .color-green {
+            color: #22c55e;
+        }
+
+        .color-yellow {
+            color: #eab308;
+        }
+
+        .bg-red-light {
+            background-color: rgba(239, 68, 68, 0.1);
+        }
+
+        .bg-blue-light {
+            background-color: rgba(59, 130, 246, 0.1);
+        }
+
+        .bg-green-light {
+            background-color: rgba(34, 197, 94, 0.1);
+        }
+
+        .bg-yellow-light {
+            background-color: rgba(234, 179, 8, 0.1);
+        }
+    </style>
+</head>
+
+<body>
+
+    <a href="main.html" style="position: fixed; top: 16px; left: 16px; text-decoration: none; font-size: 2rem; background: rgba(255,255,255,0.9); border-radius: 50%; width: 54px; height: 54px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; border: 2px solid #e2d9f3; transition: transform 0.2s;" title="첫 화면으로" onmouseover="this.style.transform=&apos;scale(1.1)&apos;" onmouseout="this.style.transform=&apos;scale(1)&apos;">🏠</a>
+  <div id="game-container">
+        <!-- Top HUD -->
+        <div class="px-4 py-3 bg-white flex justify-between items-center border-b-2 border-gray-100 z-10">
+            <div>
+                <div class="text-sm text-gray-500 font-bold">LEVEL <span id="ui-level"
+                        class="text-lg text-indigo-600">1</span></div>
+                <div class="text-xs text-gray-400">목표: <span id="ui-target">10</span>개</div>
+            </div>
+            <div class="text-right">
+                <div class="text-sm text-gray-500 font-bold">SCORE</div>
+                <div id="ui-score" class="text-xl font-black text-gray-800">0</div>
+            </div>
+        </div>
+
+        <!-- Game Canvas -->
+        <canvas id="gameCanvas"></canvas>
+
+        <!-- Mobile Controls -->
+        <div class="flex h-24 border-t-2 border-gray-100 bg-white z-10 shrink-0">
+            <button id="btn-left"
+                class="control-btn flex-1 flex justify-center items-center text-3xl text-gray-600 border-r border-gray-100">
+                ◀
+            </button>
+            <button id="btn-down"
+                class="control-btn flex-1 flex justify-center items-center text-3xl text-gray-600 border-r border-gray-100">
+                ▼
+            </button>
+            <button id="btn-right" class="control-btn flex-1 flex justify-center items-center text-3xl text-gray-600">
+                ▶
+            </button>
+        </div>
+
+        <!-- Overlays -->
+        <!-- Start Screen -->
+        <div id="screen-start"
+            class="absolute inset-0 bg-white/95 z-50 flex flex-col items-center justify-center p-6 text-center">
+            <h1 class="text-4xl font-black mb-2">무드미터 게임</h1>
+            <p class="text-gray-600 mb-8">감정을 알맞은 색상 방에 넣어주세요!</p>
+
+            <div class="grid grid-cols-2 gap-4 w-full max-w-sm mb-8 text-sm">
+                <div class="bg-red-50 p-3 rounded-xl border border-red-200">
+                    <div class="font-bold text-red-500">빨강 (분노/불안)</div>
+                    기분이 나쁜 에너지가 높아요
+                </div>
+                <div class="bg-yellow-50 p-3 rounded-xl border border-yellow-200">
+                    <div class="font-bold text-yellow-500">노랑 (기쁨/신남)</div>
+                    기분이 좋아서 힘이 나요
+                </div>
+                <div class="bg-blue-50 p-3 rounded-xl border border-blue-200">
+                    <div class="font-bold text-blue-500">파랑 (슬픔/우울)</div>
+                    기분이 나쁘고 힘도 없어요
+                </div>
+                <div class="bg-green-50 p-3 rounded-xl border border-green-200">
+                    <div class="font-bold text-green-500">초록 (평온/만족)</div>
+                    기분이 좋아서 몸에 힘이 빠져요
+                </div>
+            </div>
+
+            <p class="text-sm text-gray-500 mb-6">조작: 좌/우 방향키 이동, 아래 방향키 가속</p>
+            <button onclick="startGame()"
+                class="w-full max-w-xs bg-indigo-600 text-white font-bold py-4 rounded-2xl text-xl shadow-lg hover:bg-indigo-700 transition transform hover:scale-105">
+                게임 시작
+            </button>
+        </div>
+
+        <!-- Message Overlay (Level Up, Game Over) -->
+        <div id="screen-message"
+            class="absolute inset-0 bg-black/60 z-50 hidden flex-col items-center justify-center p-6 text-center">
+            <div class="bg-white p-8 rounded-3xl w-full max-w-xs shadow-2xl transform scale-100 transition">
+                <h2 id="msg-title" class="text-3xl font-black mb-4">레벨 2</h2>
+                <p id="msg-desc" class="text-gray-600 mb-6">새로운 감정들이 추가되었습니다!</p>
+                <button id="msg-btn" onclick="nextAction()"
+                    class="w-full bg-indigo-600 text-white font-bold py-3 rounded-xl text-lg hover:bg-indigo-700 transition">
+                    계속하기
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 감정 데이터 ---
+        // 레벨 1~5에 따라 떨어지는 감정들이 추가됩니다.
+        const allEmotions = [
+            // Level 1 (기본 4감정)
+            { word: '화남', emoji: '😡', color: 'red', level: 1 },
+            { word: '슬픔', emoji: '😭', color: 'blue', level: 1 },
+            { word: '편안', emoji: '😌', color: 'green', level: 1 },
+            { word: '기쁨', emoji: '😄', color: 'yellow', level: 1 },
+
+            // Level 2
+            { word: '짜증', emoji: '😠', color: 'red', level: 2 },
+            { word: '피곤', emoji: '😪', color: 'blue', level: 2 },
+            { word: '차분', emoji: '🙂', color: 'green', level: 2 },
+            { word: '신남', emoji: '😆', color: 'yellow', level: 2 },
+
+            // Level 3
+            { word: '불안', emoji: '😰', color: 'red', level: 3 },
+            { word: '외로움', emoji: '🥺', color: 'blue', level: 3 },
+            { word: '만족', emoji: '😊', color: 'green', level: 3 },
+            { word: '기대', emoji: '🤩', color: 'yellow', level: 3 },
+
+            // Level 4
+            { word: '분노', emoji: '🤬', color: 'red', level: 4 },
+            { word: '우울', emoji: '😔', color: 'blue', level: 4 },
+            { word: '안도', emoji: '😮‍💨', color: 'green', level: 4 },
+            { word: '열정', emoji: '🔥', color: 'yellow', level: 4 },
+
+            // Level 5
+            { word: '당황', emoji: '😳', color: 'red', level: 5 },
+            { word: '무기력', emoji: '🫠', color: 'blue', level: 5 },
+            { word: '평화', emoji: '😇', color: 'green', level: 5 },
+            { word: '환희', emoji: '🥳', color: 'yellow', level: 5 }
+        ];
+
+        const binHex = {
+            'red': '#ef4444',
+            'blue': '#3b82f6',
+            'green': '#22c55e',
+            'yellow': '#eab308'
+        };
+        const colorToLabel = {
+            'red': '빨강',
+            'blue': '파랑',
+            'green': '초록',
+            'yellow': '노랑'
+        };
+
+        // --- 게임 상태 및 설정 ---
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let gameLoopId;
+        let isPlaying = false;
+
+        let level = 1;
+        let score = 0;
+        let collectedCount = 0;
+        let targetCount = 10;
+
+        // 블록 (감정)
+        let currentBlock = null;
+        let baseSpeed = 2; // 떨어지는 기본 속도
+        let currentSpeed = baseSpeed;
+
+        // 시각 효과용 배열
+        let particles = [];
+        let floatingTexts = [];
+
+        // 해상도 조절
+        function resizeCanvas() {
+            const parent = canvas.parentElement;
+            canvas.width = parent.clientWidth;
+            // HUD(약 60px)와 하단 컨트롤러(약 96px) 영역 제외
+            canvas.height = parent.clientHeight - 60 - 96;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // 입력 처리 상태
+        let lane = 0;
+        let totalLanes = 2;
+        let activeColors = [];
+        let activeLabels = [];
+        let isFastDropping = false;
+
+        // --- 입력 컨트롤 ---
+        function moveLeft() { if (isPlaying && lane > 0) lane--; }
+        function moveRight() { if (isPlaying && lane < totalLanes - 1) lane++; }
+        function setFastDrop(fast) { isFastDropping = fast; }
+
+        // 키보드 이벤트
+        window.addEventListener('keydown', (e) => {
+            if (!isPlaying) return;
+            if (e.key === 'ArrowLeft') moveLeft();
+            if (e.key === 'ArrowRight') moveRight();
+            if (e.key === 'ArrowDown') setFastDrop(true);
+        });
+        window.addEventListener('keyup', (e) => {
+            if (e.key === 'ArrowDown') setFastDrop(false);
+        });
+
+        // 모바일 버튼 이벤트
+        const btnLeft = document.getElementById('btn-left');
+        const btnRight = document.getElementById('btn-right');
+        const btnDown = document.getElementById('btn-down');
+
+        // 마우스/터치 모두 지원하도록 이벤트 등록
+        btnLeft.addEventListener('touchstart', (e) => { e.preventDefault(); moveLeft(); });
+        btnRight.addEventListener('touchstart', (e) => { e.preventDefault(); moveRight(); });
+        btnDown.addEventListener('touchstart', (e) => { e.preventDefault(); setFastDrop(true); });
+        btnDown.addEventListener('touchend', (e) => { e.preventDefault(); setFastDrop(false); });
+
+        btnLeft.addEventListener('mousedown', moveLeft);
+        btnRight.addEventListener('mousedown', moveRight);
+        btnDown.addEventListener('mousedown', () => setFastDrop(true));
+        btnDown.addEventListener('mouseup', () => setFastDrop(false));
+        btnDown.addEventListener('mouseleave', () => setFastDrop(false));
+
+
+        // --- 게임 로직 ---
+        function getAvailableEmotions() {
+            return allEmotions.filter(e => e.level <= level && activeColors.includes(e.color));
+        }
+
+        function spawnBlock() {
+            const available = getAvailableEmotions();
+            const randEmotion = available[Math.floor(Math.random() * available.length)];
+
+            currentBlock = {
+                data: randEmotion,
+                y: -50,
+                targetLane: lane // 처음엔 현재 사용자의 레인에서 생성 또는 랜덤으로 하려면 Math.floor(Math.random() * 4)
+            };
+            // 생성 시에는 랜덤 레인에 등장하게 하려면 아래 주석 해제
+            // lane = Math.floor(Math.random() * 4);
+            // currentBlock.targetLane = lane;
+        }
+
+        function addParticle(x, y, color) {
+            for (let i = 0; i < 10; i++) {
+                particles.push({
+                    x: x, y: y,
+                    vx: (Math.random() - 0.5) * 8,
+                    vy: (Math.random() - 1) * 8,
+                    life: 1.0,
+                    color: color
+                });
+            }
+        }
+
+        function addFloatingText(x, y, text, color) {
+            floatingTexts.push({
+                x: x, y: y,
+                text: text,
+                color: color,
+                life: 1.0,
+                vy: -2
+            });
+        }
+
+        function checkCollision() {
+            const binHeight = 80;
+            const groundY = canvas.height - binHeight;
+            const blockBottomY = currentBlock.y + 20; // 텍스트를 포함한 블록의 대략적인 하단 위치
+
+            if (blockBottomY >= groundY) {
+                // 어느 빈(bin)에 떨어졌는지 확인
+                const selectedColor = activeColors[lane];
+                const laneWidth = canvas.width / totalLanes;
+                const dropX = lane * laneWidth + (laneWidth / 2);
+
+                if (selectedColor === currentBlock.data.color) {
+                    // 정답
+                    score += 10;
+                    collectedCount++;
+                    addParticle(dropX, groundY, binHex[selectedColor]);
+                    addFloatingText(dropX, groundY - 20, "정답! +10", "#22c55e");
+                } else {
+                    // 오답
+                    score = Math.max(0, score - 5);
+                    addFloatingText(dropX, groundY - 20, "오답! -5", "#ef4444");
+                }
+
+                updateUI();
+
+                if (collectedCount >= targetCount) {
+                    levelComplete();
+                } else {
+                    spawnBlock();
+                }
+            }
+        }
+
+        function update() {
+            if (!isPlaying || !currentBlock) return;
+
+            // 속도 결정
+            currentSpeed = isFastDropping ? baseSpeed * 4 : baseSpeed;
+
+            // 블록 하강
+            currentBlock.y += currentSpeed;
+
+            // 충돌 검사
+            checkCollision();
+
+            // 파티클 업데이트
+            for (let i = particles.length - 1; i >= 0; i--) {
+                let p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vy += 0.3; // 중력
+                p.life -= 0.05;
+                if (p.life <= 0) particles.splice(i, 1);
+            }
+
+            // 플로팅 텍스트 업데이트
+            for (let i = floatingTexts.length - 1; i >= 0; i--) {
+                let ft = floatingTexts[i];
+                ft.y += ft.vy;
+                ft.life -= 0.02;
+                if (ft.life <= 0) floatingTexts.splice(i, 1);
+            }
+        }
+
+        function draw() {
+            // 배경 클리어
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const laneWidth = canvas.width / totalLanes;
+            const binHeight = 80;
+
+            // 레인 배경 그리기
+            for (let i = 0; i < totalLanes; i++) {
+                if (i === lane) {
+                    // 현재 선택된 레인 하이라이트
+                    ctx.fillStyle = "rgba(0,0,0,0.03)";
+                    ctx.fillRect(i * laneWidth, 0, laneWidth, canvas.height);
+                }
+                // 레인 구분선
+                if (i > 0) {
+                    ctx.beginPath();
+                    ctx.moveTo(i * laneWidth, 0);
+                    ctx.lineTo(i * laneWidth, canvas.height - binHeight);
+                    ctx.strokeStyle = "rgba(0,0,0,0.05)";
+                    ctx.stroke();
+                }
+            }
+
+            // 하단 빈(Bin) 그리기
+            for (let i = 0; i < totalLanes; i++) {
+                ctx.fillStyle = binHex[activeColors[i]];
+                // 약간 투명하게
+                ctx.globalAlpha = i === lane ? 1.0 : 0.6;
+                ctx.fillRect(i * laneWidth, canvas.height - binHeight, laneWidth, binHeight);
+                ctx.globalAlpha = 1.0;
+
+                // 라벨 텍스트
+                ctx.fillStyle = "white";
+                ctx.font = "bold 16px sans-serif";
+                ctx.textAlign = "center";
+                ctx.fillText(activeLabels[i], i * laneWidth + laneWidth / 2, canvas.height - binHeight + 45);
+            }
+
+            // 떨어지는 블록 그리기
+            if (currentBlock) {
+                const bx = lane * laneWidth + (laneWidth / 2);
+                const by = currentBlock.y;
+
+                ctx.textAlign = "center";
+
+                // 이모지
+                ctx.font = "40px sans-serif";
+                ctx.fillText(currentBlock.data.emoji, bx, by);
+
+                // 텍스트 배경
+                ctx.fillStyle = "white";
+                ctx.globalAlpha = 0.8;
+                ctx.beginPath();
+                ctx.roundRect(bx - 30, by + 10, 60, 24, 12);
+                ctx.fill();
+                ctx.globalAlpha = 1.0;
+
+                // 단어 텍스트
+                ctx.fillStyle = "#333";
+                ctx.font = "bold 16px sans-serif";
+                ctx.fillText(currentBlock.data.word, bx, by + 28);
+            }
+
+            // 파티클 그리기
+            particles.forEach(p => {
+                ctx.fillStyle = p.color;
+                ctx.globalAlpha = p.life;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            ctx.globalAlpha = 1.0;
+
+            // 플로팅 텍스트 그리기
+            floatingTexts.forEach(ft => {
+                ctx.fillStyle = ft.color;
+                ctx.globalAlpha = ft.life;
+                ctx.font = "bold 20px sans-serif";
+                ctx.textAlign = "center";
+                // 테두리
+                ctx.strokeStyle = "white";
+                ctx.lineWidth = 3;
+                ctx.strokeText(ft.text, ft.x, ft.y);
+                ctx.fillText(ft.text, ft.x, ft.y);
+            });
+            ctx.globalAlpha = 1.0;
+        }
+
+        function gameLoop() {
+            if (!isPlaying) return;
+            update();
+            draw();
+            gameLoopId = requestAnimationFrame(gameLoop);
+        }
+
+        // --- 게임 진행 관리 ---
+        function updateUI() {
+            document.getElementById('ui-level').innerText = level;
+            document.getElementById('ui-score').innerText = score;
+            document.getElementById('ui-target').innerText = `${collectedCount}/${targetCount}`;
+        }
+
+        function startGame() {
+            document.getElementById('screen-start').classList.add('hidden');
+            level = 1;
+            score = 0;
+            startLevel();
+        }
+
+        function startLevel() {
+            document.getElementById('screen-message').classList.add('hidden');
+            collectedCount = 0;
+            targetCount = 5 + (level * 5); // L1:10, L2:15, L3:20...
+
+            // 단계별 색상 칸 수 조절 (1~3단계: 2개, 4단계: 3개, 5단계: 4개)
+            if (level === 1) {
+                activeColors = ['red', 'yellow'];
+            } else if (level === 2) {
+                activeColors = ['blue', 'green'];
+            } else if (level === 3) {
+                activeColors = ['red', 'blue'];
+            } else if (level === 4) {
+                activeColors = ['red', 'blue', 'yellow'];
+            } else {
+                activeColors = ['red', 'blue', 'green', 'yellow'];
+            }
+            totalLanes = activeColors.length;
+            activeLabels = activeColors.map(c => colorToLabel[c]);
+
+            // 속도를 훨씬 느리게 조정
+            baseSpeed = 0.8 + (level * 0.3);
+
+            // 시작 위치를 중앙 근처로 설정
+            lane = Math.floor(totalLanes / 2) - (totalLanes % 2 === 0 ? 1 : 0);
+            if (lane < 0) lane = 0;
+
+            isFastDropping = false;
+            particles = [];
+            floatingTexts = [];
+
+            updateUI();
+            spawnBlock();
+
+            if (!isPlaying) {
+                isPlaying = true;
+                gameLoop();
+            }
+        }
+
+        let nextActionCb = null;
+        function nextAction() {
+            if (nextActionCb) nextActionCb();
+        }
+
+        function showMessage(title, desc, btnText, callback) {
+            isPlaying = false;
+            cancelAnimationFrame(gameLoopId);
+
+            document.getElementById('msg-title').innerText = title;
+            document.getElementById('msg-desc').innerText = desc;
+            document.getElementById('msg-btn').innerText = btnText;
+            document.getElementById('screen-message').classList.remove('hidden');
+
+            nextActionCb = callback;
+        }
+
+        function levelComplete() {
+            if (level < 5) {
+                level++;
+                showMessage(
+                    `레벨 ${level} 달성!`,
+                    `속도가 빨라지고 새로운 감정들이 등장합니다.\n현재 점수: ${score}점`,
+                    '다음 레벨 시작',
+                    startLevel
+                );
+            } else {
+                // 게임 클리어 (5단계 완료)
+                showMessage(
+                    `축하합니다! 🥳`,
+                    `모든 레벨을 클리어했습니다!\n최종 점수: ${score}점\n감정 마스터가 되셨네요!`,
+                    '다시하기',
+                    () => {
+                        level = 1;
+                        score = 0;
+                        startLevel();
+                    }
+                );
+            }
+        }
+
+    </script>
+</body>
+
+</html>
