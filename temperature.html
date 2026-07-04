@@ -139,9 +139,66 @@
       border-radius: 12px; font-size: 1.3rem; margin-top: 15px; font-family: 'Okticon', sans-serif;
     }
     .empty-msg { font-size: 1.4rem; color: #999; padding: 20px; text-align: center; }
+
+    /* 안내 팝업 */
+    .guide-overlay {
+      position: fixed; top:0; left:0; right:0; bottom:0;
+      background: rgba(0,0,0,0.45);
+      backdrop-filter: blur(5px);
+      display: none;
+      align-items: center; justify-content: center;
+      z-index: 9999;
+      padding: 20px;
+    }
+    .guide-overlay.active { display: flex; }
+    .guide-box {
+      background: white;
+      border-radius: 28px;
+      padding: 36px 32px;
+      width: 100%; max-width: 480px;
+      text-align: center;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.2);
+    }
+    .guide-box .icon { font-size: 4rem; margin-bottom: 16px; }
+    .guide-box h2 {
+      font-family: 'Okticon', sans-serif;
+      font-size: 1.9rem;
+      color: #322850;
+      margin: 0 0 14px 0;
+    }
+    .guide-box p {
+      font-family: 'GangwonEducationSaeum', sans-serif;
+      font-size: 1.45rem;
+      color: #6b6385;
+      line-height: 1.7;
+      margin: 0 0 24px 0;
+    }
+    .guide-btn {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: var(--accent); color: white;
+      border: none; border-radius: 999px;
+      padding: 14px 32px;
+      font-family: 'Okticon', sans-serif;
+      font-size: 1.55rem;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(139,92,246,0.3);
+      transition: transform 0.2s, box-shadow 0.2s;
+      text-decoration: none;
+    }
+    .guide-btn:hover { transform: scale(1.04); box-shadow: 0 6px 20px rgba(139,92,246,0.4); }
   </style>
 </head>
 <body>
+
+  <!-- 단계별 안내 팝업 -->
+  <div class="guide-overlay" id="guideModal">
+    <div class="guide-box">
+      <div class="icon" id="guideIcon">📌</div>
+      <h2 id="guideTitle">먼저 감정을 찾아주세요!</h2>
+      <p id="guideMsg">안내 메시지</p>
+      <a class="guide-btn" id="guideGoBtn" href="#">이동하기</a>
+    </div>
+  </div>
   <a href="main.html" class="home-btn" title="첫 화면으로">🏠</a>
 
   <div class="header">
@@ -369,6 +426,32 @@
       `;
 
       app.innerHTML = html;
+    }
+
+    // 단계별 코치 팝업 함수
+    function showGuide(icon, title, msg, href) {
+      document.getElementById('guideIcon').textContent = icon;
+      document.getElementById('guideTitle').textContent = title;
+      document.getElementById('guideMsg').innerHTML = msg;
+      document.getElementById('guideGoBtn').href = href;
+      document.getElementById('guideModal').classList.add('active');
+    }
+
+    // 주의: 등록된 감정 데이터 업룡드 후 체크
+    if (savedMyEmotions.length === 0) {
+      showGuide(
+        '💔',
+        '나의 감정을 먼저 찾아오세요!',
+        '온도 맞추기를 하려면<br>먼저 <strong>나의 감정</strong>을 무드미터에서<br>찾고 저장해 주세요. 🌈',
+        'moodmeter.html'
+      );
+    } else if (savedFriendEmotions.length === 0) {
+      showGuide(
+        '👫',
+        '친구의 감정이 없어요!',
+        '온도 맞추기를 하려면<br><strong>친구 감정 찾기</strong> 페이지에서<br>친구의 마음을 찾아 저장해 주세요. 💖',
+        'friends.html'
+      );
     }
 
     renderApp();

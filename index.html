@@ -282,7 +282,7 @@
     <h2>AI 디지털을 활용한 행복 찾기</h2>
     <div class="deco-symbols">♤ £ ♧ † ¢</div>
     
-    <button class="login-btn" id="googleLoginBtn" onclick="googleLogin()">
+    <button class="login-btn" id="googleLoginBtn">
       <svg viewBox="0 0 24 24" width="24" height="24">
         <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
         <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.16v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
@@ -305,9 +305,8 @@
       © 2026 Hamsam special. All rights reserved. 무드미터로 너와 나의 마음 온도 맞추기 l 모두를 위한 SEL 적용.
     </div>
   </footer>
-
-  <!-- Ethics Gate Modal -->
-  <div class="modal-overlay active" id="ethicModal">
+  <!-- 윤리 팝업 -->
+  <div class="modal-overlay" id="ethicModal">
     <div class="modal-content">
       <h3>AI 디지털 사회정서학습 윤리 핵심가이드</h3>
       <div class="text-format" style="line-height: 1.6; white-space: normal;">
@@ -317,7 +316,6 @@
         <p><strong>🚀 4. AI를 쓰기전에 내 생각을 먼저 해보고, AI와 함께 그 생각을 키워요!</strong><br>무작정 묻기 전에, 내 생각과 아이디어를 먼저 정리해보고,<br>완성된 결과에 내 경험과 색깔을 더하면 훨씬 큰 도움이 돼요.</p>
         <p><strong>🤝 5. AI 디지털 사회정서학습을 통해 배우고 실천해요.</strong><br>나의 감정, 너의 감정을 알아차리며 서로 연결되어 있다는 것을 느껴봐요.<br>우리는 서로가 서로의 감정을 더 잘 알아차려주면서 함께 성장할 수 있어요.</p>
       </div>
-      
       <label class="ethic-agree">
         <input type="checkbox" id="ethicCheck">
         나는 윤리 핵심가이드를 빠짐없이 읽고 이를 실천하겠습니다.
@@ -326,7 +324,7 @@
     </div>
   </div>
 
-  <!-- Terms Modal -->
+  <!-- Footer -->
   <div class="modal-overlay" id="termsModal">
     <div class="modal-content">
       <button class="modal-close" onclick="closeModal('termsModal')">×</button>
@@ -432,29 +430,6 @@
   </div>
 
   <script>
-    // Checkbox logic for Ethics Gate
-    const ethicCheck = document.getElementById('ethicCheck');
-    const ethicBtn = document.getElementById('ethicBtn');
-    const ethicModal = document.getElementById('ethicModal');
-
-    ethicCheck.addEventListener('change', (e) => {
-      if(e.target.checked) {
-        ethicBtn.disabled = false;
-        ethicBtn.classList.add('active');
-      } else {
-        ethicBtn.disabled = true;
-        ethicBtn.classList.remove('active');
-      }
-    });
-
-    ethicBtn.addEventListener('click', () => {
-      if(ethicCheck.checked) {
-        ethicModal.classList.remove('active');
-        // 윤리 약속 후 메인 화면으로 이동!
-        window.location.href = 'main.html';
-      }
-    });
-
     // Modal Logic
     function openModal(id) {
       document.getElementById(id).classList.add('active');
@@ -471,97 +446,107 @@
       const p = document.createElement('div');
       p.className = 'particle';
       p.textContent = emojis[Math.floor(Math.random() * emojis.length)];
-      
-      // Random position and duration
       p.style.left = Math.random() * 100 + 'vw';
-      const duration = Math.random() * 4 + 4; // 4~8s
+      const duration = Math.random() * 4 + 4;
       p.style.animationDuration = duration + 's';
-      
-      // Random size
-      const size = Math.random() * 1.5 + 1; // 1~2.5rem
+      const size = Math.random() * 1.5 + 1;
       p.style.fontSize = size + 'rem';
-
       particlesContainer.appendChild(p);
-
-      // Remove after animation
-      setTimeout(() => {
-        p.remove();
-      }, duration * 1000);
+      setTimeout(() => { p.remove(); }, duration * 1000);
     }
-
-    // Generate particles periodically
     setInterval(createParticle, 400);
   </script>
 
-  <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js';
-    import { getAnalytics } from 'https://www.gstatic.com/firebasejs/12.15.0/firebase-analytics.js';
-    import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js';
+  <script>
+    (async () => {
+      const { initializeApp } = await import('https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js');
+      const { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } = await import('https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js');
 
-    const firebaseConfig = {
-      apiKey: 'AIzaSyAzgNMacPLAfY4Cve2KPYNDD1cLSIFtmMQ',
-      authDomain: 'sel-for-all.firebaseapp.com',
-      projectId: 'sel-for-all',
-      storageBucket: 'sel-for-all.firebasestorage.app',
-      messagingSenderId: '903812179714',
-      appId: '1:903812179714:web:dd33b1a9a6ad186e75841b',
-      measurementId: 'G-VC53T499WN'
-    };
+      const firebaseConfig = {
+        apiKey: 'AIzaSyAzgNMacPLAfY4Cve2KPYNDD1cLSIFtmMQ',
+        authDomain: 'sel-for-all.firebaseapp.com',
+        projectId: 'sel-for-all',
+        storageBucket: 'sel-for-all.firebasestorage.app',
+        messagingSenderId: '903812179714',
+        appId: '1:903812179714:web:dd33b1a9a6ad186e75841b',
+        measurementId: 'G-VC53T499WN'
+      };
 
-    const app = initializeApp(firebaseConfig);
-    getAnalytics(app);
-    const auth = getAuth(app);
-    const provider = new GoogleAuthProvider();
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const provider = new GoogleAuthProvider();
 
-    // 이미 로그인된 상태인지 감지
-    onAuthStateChanged(auth, (user) => {
-      const btn = document.getElementById('googleLoginBtn');
-      const btnText = document.getElementById('loginBtnText');
-      const userInfo = document.getElementById('userInfo');
+      const loginBtn   = document.getElementById('googleLoginBtn');
+      const loginText  = document.getElementById('loginBtnText');
+      const userInfo   = document.getElementById('userInfo');
+      const ethicModal = document.getElementById('ethicModal');
+      const ethicCheck = document.getElementById('ethicCheck');
+      const ethicBtn   = document.getElementById('ethicBtn');
 
-      if (user) {
-        // 이미 로그인됨 → 버튼 텍스트 변경, 클릭 시 윤리 팝업 열기
-        btnText.textContent = user.displayName + '님 환영합니다! 🌟';
-        userInfo.style.display = 'block';
-        userInfo.textContent = '버튼을 눌러 시작하세요!';
-        btn.disabled = false;
-        // window 함수를 '윤리 팝업 열기'로 교체
-        window.googleLogin = function() {
-          document.getElementById('ethicModal').classList.add('active');
-        };
-        localStorage.setItem('userName', user.displayName);
-        localStorage.setItem('userEmail', user.email);
-        localStorage.setItem('userPhoto', user.photoURL || '');
-      } else {
-        // 로그인 안 됨 → 기본 구글 로그인 팝업 실행
-        btnText.textContent = 'Google 로그인';
-        userInfo.style.display = 'none';
-        btn.disabled = false;
-        window.googleLogin = function() {
-          btn.disabled = true;
-          btnText.textContent = '로그인 중...';
-          signInWithPopup(auth, provider)
-            .then((result) => {
-              const user = result.user;
-              localStorage.setItem('userName', user.displayName);
-              localStorage.setItem('userEmail', user.email);
-              localStorage.setItem('userPhoto', user.photoURL || '');
-              // 로그인 성공 → 윤리 안내 팝업 열기
-              document.getElementById('ethicModal').classList.add('active');
-              btnText.textContent = user.displayName + '님 환영합니다! 🌟';
-              btn.disabled = false;
-            })
-            .catch((error) => {
-              console.error('로그인 실패:', error);
-              btn.disabled = false;
-              btnText.textContent = 'Google 로그인';
-              if (error.code !== 'auth/popup-closed-by-user') {
-                alert('로그인에 실패했습니다. 다시 시도해 주세요.');
-              }
-            });
-        };
-      }
-    });
+      // 윤리 체크박스
+      ethicCheck.addEventListener('change', (e) => {
+        ethicBtn.disabled = !e.target.checked;
+        ethicBtn.classList.toggle('active', e.target.checked);
+      });
+
+      // 윤리 동의 → main.html 이동
+      ethicBtn.addEventListener('click', () => {
+        if (ethicCheck.checked) {
+          localStorage.setItem('ethicAgreed', 'true');
+          window.location.href = 'main.html';
+        }
+      });
+
+      // 로그인 버튼 클릭
+      loginBtn.addEventListener('click', () => {
+        loginBtn.disabled = true;
+        loginText.textContent = '로그인 중...';
+        signInWithPopup(auth, provider)
+          .then((result) => {
+            const user = result.user;
+            localStorage.setItem('userName', user.displayName);
+            localStorage.setItem('userEmail', user.email);
+            localStorage.setItem('userPhoto', user.photoURL || '');
+            // 이미 윤리 동의했으면 바로 main으로
+            if (localStorage.getItem('ethicAgreed')) {
+              window.location.href = 'main.html';
+            } else {
+              ethicModal.classList.add('active');
+              loginText.textContent = user.displayName + '님 환영합니다! 🌟';
+              loginBtn.disabled = false;
+            }
+          })
+          .catch((error) => {
+            loginBtn.disabled = false;
+            loginText.textContent = 'Google 로그인';
+            if (error.code !== 'auth/popup-closed-by-user') {
+              alert('로그인에 실패했습니다. 다시 시도해 주세요.');
+            }
+          });
+      });
+
+      // 이미 로그인된 상태 감지
+      onAuthStateChanged(auth, (user) => {
+        if (user) {
+          localStorage.setItem('userName', user.displayName);
+          localStorage.setItem('userEmail', user.email);
+          localStorage.setItem('userPhoto', user.photoURL || '');
+          loginText.textContent = user.displayName + '님 환영합니다! 🌟';
+          userInfo.style.display = 'block';
+          userInfo.textContent = '버튼을 눌러 시작하세요!';
+          loginBtn.disabled = false;
+
+          // 이미 윤리 동의했으면 버튼 클릭 시 바로 main으로
+          loginBtn.onclick = () => {
+            if (localStorage.getItem('ethicAgreed')) {
+              window.location.href = 'main.html';
+            } else {
+              ethicModal.classList.add('active');
+            }
+          };
+        }
+      });
+    })();
   </script>
 </body>
 </html>
