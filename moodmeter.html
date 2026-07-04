@@ -946,6 +946,18 @@
         <div class="empty" id="emptyBox" style="grid-column:1/-1; padding:20px; text-align:center; border:2px dashed #eee; border-radius:16px; color:#999;">아직 저장한 감정이 없어요.<br><strong>내 감정 저장</strong> 버튼을 눌러 보세요.</div>
       </div>
     </section>
+
+    <!-- 감정 추이 그래프 -->
+    <section id="chartSection" style="margin-top:20px; background:#fff; border-radius:24px; padding:24px; box-shadow:0 8px 24px rgba(0,0,0,0.05);">
+      <div style="margin-bottom:16px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+        <h2 style="font-family:'Okticon',sans-serif; font-size:1.6rem; color:var(--text); margin:0;">📈 나의 감정 추이</h2>
+        <div class="hint" style="font-size:1rem; color:var(--sub);">날마다 저장된 기분의 흐름이에요.</div>
+      </div>
+      <div id="chartWrap" style="position:relative; width:100%; overflow-x:auto;">
+        <canvas id="emotionChart" style="display:block; min-width:300px; width:100%; height:180px;"></canvas>
+        <div id="chartEmpty" style="text-align:center; padding:30px; color:#aaa; font-size:1.3rem; display:none;">아직 기록이 없어요.<br>감정을 저장하면 추이가 나타나요! 🌱</div>
+      </div>
+    </section>
   
     <div class="footer-note">
       <span>💬 팁: "나는 지금 ○○한 마음이야." 라고 말해 보세요.</span>
@@ -1262,19 +1274,141 @@
         const e = Number(energy.value);
         const q = quadrantOf(p, e);
         const word = mainWordOf(q, p, e);
-        const item = { p, e, q, word, time: new Date().toLocaleTimeString('ko-KR', {hour:'2-digit', minute:'2-digit'}) };
+        const today = new Date().toLocaleDateString('ko-KR');
+        const timeStr = new Date().toLocaleTimeString('ko-KR', {hour:'2-digit', minute:'2-digit'});
+        const item = { p, e, q, word, date: today, time: timeStr };
         savedMyEmotions = [item];
         
         localStorage.setItem('savedMyEmotions', JSON.stringify(savedMyEmotions));
-        // 최근 저장한 감정을 최상위 연동 데이터로도 저장 (temperature.html 용도)
-        localStorage.setItem('myMood', JSON.stringify({ p, e, q, word, emoji: quadrantEmoji(q) }));
+        localStorage.setItem('myMood', JSON.stringify({ p, e, q, word, emoji: quadrantEmoji(q), date: today }));
+
+        // 감정 히스토리 누적저장
+        let history = [];
+        try { history = JSON.parse(localStorage.getItem('emotionHistory') || '[]'); } catch(e2){}
+        // 같은 날짜면 덧어쓰기, 다른 날짜면 추가
+        const existIdx = history.findIndex(h => h.date === today);
+        const histItem = { date: today, time: timeStr, p, e, q, word, emoji: quadrantEmoji(q) };
+        if (existIdx >= 0) history[existIdx] = histItem;
+        else history.push(histItem);
+        // 최대 60일치 유지
+        if (history.length > 60) history = history.slice(-60);
+        localStorage.setItem('emotionHistory', JSON.stringify(history));
+        
         renderSavedList();
+        renderChart();
       });
       
       // 초기 렌더링 시 목록 그리기
       renderSavedList();
+      renderChart();
   
     })();
+
+    // ── 감정 추이 그래프 함수 ────────────────────────
+    function renderChart() {
+      let history = [];
+      try { history = JSON.parse(localStorage.getItem('emotionHistory') || '[]'); } catch(e){}
+
+      const canvas  = document.getElementById('emotionChart');
+      const empty   = document.getElementById('chartEmpty');
+
+      if (!history || history.length === 0) {
+        canvas.style.display = 'none';
+        empty.style.display  = 'block';
+        return;
+      }
+      canvas.style.display = 'block';
+      empty.style.display  = 'none';
+
+      // 캔버스 크기 동적 설정
+      const wrap = document.getElementById('chartWrap');
+      const W = Math.max(wrap.clientWidth, history.length * 60 + 80);
+      const H = 180;
+      canvas.width  = W;
+      canvas.height = H;
+
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, W, H);
+
+      const PAD_L = 40, PAD_R = 20, PAD_T = 30, PAD_B = 40;
+      const chartW = W - PAD_L - PAD_R;
+      const chartH = H - PAD_T - PAD_B;
+
+      // 배경 그라디언트
+      const grad = ctx.createLinearGradient(0, PAD_T, 0, PAD_T + chartH);
+      grad.addColorStop(0, 'rgba(255,230,100,0.12)');
+      grad.addColorStop(1, 'rgba(100,180,255,0.12)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(PAD_L, PAD_T, chartW, chartH);
+
+      // Y축 라벨 (좋음 / 나쁜)
+      ctx.font = 'bold 11px Okticon, sans-serif';
+      ctx.fillStyle = '#999';
+      ctx.textAlign = 'right';
+      ctx.fillText('혁시좋음', PAD_L - 4, PAD_T + 8);
+      ctx.fillText('중간', PAD_L - 4, PAD_T + chartH / 2 + 4);
+      ctx.fillText('나쁜', PAD_L - 4, PAD_T + chartH);
+
+      // Y축 구분선
+      ctx.strokeStyle = 'rgba(0,0,0,0.06)';
+      ctx.lineWidth = 1;
+      [0, 0.5, 1].forEach(r => {
+        const y = PAD_T + chartH * r;
+        ctx.beginPath(); ctx.moveTo(PAD_L, y); ctx.lineTo(PAD_L + chartW, y);
+        ctx.stroke();
+      });
+
+      const n = history.length;
+      const step = n === 1 ? 0 : chartW / (n - 1);
+
+      // 점 좌표 계산 (p: 0=나쁜, 100=좋음 → Y축 반전)
+      const pts = history.map((h, i) => ({
+        x: PAD_L + (n === 1 ? chartW / 2 : i * step),
+        y: PAD_T + chartH * (1 - h.p / 100),
+        emoji: h.emoji || '💩',
+        q: h.q,
+        date: h.date,
+        word: h.word
+      }));
+
+      // 선 그리기
+      if (pts.length > 1) {
+        ctx.beginPath();
+        ctx.moveTo(pts[0].x, pts[0].y);
+        pts.forEach(pt => ctx.lineTo(pt.x, pt.y));
+        ctx.strokeStyle = 'rgba(139,92,246,0.4)';
+        ctx.lineWidth = 2.5;
+        ctx.lineJoin = 'round';
+        ctx.stroke();
+      }
+
+      // 이모지 & 날짜
+      const qColor = { red:'#ef6b6b', yellow:'#f5cf4f', green:'#65c27b', blue:'#69b0ee' };
+      pts.forEach(pt => {
+        // 점 배경
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, 14, 0, Math.PI * 2);
+        ctx.fillStyle = (qColor[pt.q] || '#adb5c4') + '33';
+        ctx.fill();
+        ctx.strokeStyle = qColor[pt.q] || '#adb5c4';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // 이모지
+        ctx.font = '16px serif';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#000';
+        ctx.fillText(pt.emoji, pt.x, pt.y + 5);
+
+        // 날짜 표시
+        ctx.font = '10px Okticon, sans-serif';
+        ctx.fillStyle = '#999';
+        ctx.textAlign = 'center';
+        // 날짜 단축 (MM/DD)
+        const shortDate = pt.date ? pt.date.replace(/\d{4}\. /, '').replace('.', '/').trim() : '';
+        ctx.fillText(shortDate, pt.x, PAD_T + chartH + 14);
+      });
+    }
   </script>
 
   <script>

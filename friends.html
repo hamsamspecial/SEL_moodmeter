@@ -997,9 +997,11 @@
     const word = mainWordOf(q, p, e);
     const name = friendLabel();
 
+    const today = new Date().toLocaleDateString('ko-KR');
     const item = {
       name,
       p, e, q, word,
+      date: today,
       time: new Date().toLocaleTimeString('ko-KR', {hour:'2-digit', minute:'2-digit'})
     };
 

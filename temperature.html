@@ -216,15 +216,30 @@
     let isMatched = false;
     
     try {
+      const today = new Date().toLocaleDateString('ko-KR');
+
       savedMyEmotions = JSON.parse(localStorage.getItem('savedMyEmotions') || '[]');
-      if(savedMyEmotions.length === 0) {
-        let singleMy = JSON.parse(localStorage.getItem('myMood'));
-        if(singleMy) savedMyEmotions.push(singleMy);
+      // 날짜 다르면 리셋
+      if (savedMyEmotions.length > 0 && savedMyEmotions[0].date !== today) {
+        savedMyEmotions = [];
+        localStorage.removeItem('savedMyEmotions');
+        localStorage.removeItem('myMood');
       }
+      if (savedMyEmotions.length === 0) {
+        let singleMy = JSON.parse(localStorage.getItem('myMood'));
+        if (singleMy && singleMy.date === today) savedMyEmotions.push(singleMy);
+      }
+
       savedFriendEmotions = JSON.parse(localStorage.getItem('savedEmotions') || '[]');
-      if(savedFriendEmotions.length === 0) {
+      // 날짜 다르면 리셋
+      if (savedFriendEmotions.length > 0 && savedFriendEmotions[0].date !== today) {
+        savedFriendEmotions = [];
+        localStorage.removeItem('savedEmotions');
+        localStorage.removeItem('friendMood');
+      }
+      if (savedFriendEmotions.length === 0) {
         let singleFr = JSON.parse(localStorage.getItem('friendMood'));
-        if(singleFr) savedFriendEmotions.push(singleFr);
+        if (singleFr && singleFr.date === today) savedFriendEmotions.push(singleFr);
       }
     } catch(e) { console.error(e); }
 
